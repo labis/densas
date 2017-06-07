@@ -2,21 +2,59 @@
 use strict;
 use DBI;
 use Getopt::Long;
-my ($infile,$PRJ);
-    GetOptions ('infile=s' => \$infile, 'prj=s' => \$PRJ);
-    if ((!$PRJ) || (!$infile)) {
-    print "Some required arguments are missing.\nYou must use this as follow:\n$0 --prj PROJECT --infile FASTA\n";
+use Cwd qw();
+use File::Basename;
+use POSIX;
+
+####################
+#GET THE CONFIG FILE
+####################
+
+my $name = basename($0);
+my ($real_path) = Cwd::abs_path($0)  =~ m/(.*)$name/i;
+require "$real_path/config.pl";
+
+
+my ($rundir,$PRJ);
+    GetOptions ('rundir=s' => \$rundir, 'prj=s' => \$PRJ);
+    if ((!$PRJ) || (!$rundir)) {
+    print "Some required arguments are missing.\nYou must use this as follow:\n$0 --prj PROJECT --rundir [ /PATH/TO/THE/RUNDIR/  ]\n";
     exit 1
 }
 
+################################
+#TEST IF THE HEADER FILE EXISTS
+################################
 
+unless (-e "$rundir/$PRJ\_header.txt") {
+  
+  die "Dammit Lab Goblins!! Something is terribly wrong!\nI could not find the Header file in $rundir/$PRJ\_header.txt.\nPlease check where is this file and try again\n";
+}
+
+
+###################
 # CONFIG VARIABLES
-my $platform = "mysql";
-my $database = "annotate";
-my $host = "143.106.4.249";
-my $port = "3306";
-my $user = "annotate";
-my $pw = "b10ine0!";
+###################
+# all will came from config.pl
+our ($platform, $database, $host, $port, $user, $pw, $split_seqs, $blast_run, $rfam_run, $PFAM_run, $DNSASDIR);
+my $seqNUM = 1; #count the number of sequences
+my $runtime;
+
+################
+# CONFIG TIMING
+################
+my $strtTIME = time() / 60;
+sub timing{
+  my ($seqN) = @_; # Get the uniprot ACC to consult
+  my $endtime = time() / 60;
+  my $difTIME = $endtime - $strtTIME;
+  if ($difTIME ne 0) {
+    $runtime = floor($seqN / $difTIME);
+     } else {
+    $runtime = ">60";
+  }
+  return $runtime;
+    }
 
 #Conects to the MySQL database
 my $dbh = DBI->connect("dbi:mysql:$database:$host:$port", "$user", "$pw",
@@ -31,7 +69,8 @@ sub blastRES {
 SELECT
   SubQuery.Seqname,
   gene2accession.tax_id,
-  gene_info.description
+  gene_info.description,
+  gene_info.symbol
 FROM (SELECT
     $PRJ\_blastRESULTS.Seqname,
     $PRJ\_blastRESULTS.seqGI,
@@ -66,8 +105,8 @@ if (scalar(@$blastRESDB) == 0) {
 }
 
 foreach my $row (@$blastRESDB) {
-     my ($Seqname, $tax_id, $desc_blst) = @$row;
-     return " $desc_blst ($tax_id\)";
+     my ($Seqname, $tax_id, $desc_blst,$symbol) = @$row;
+     return "$desc_blst ($symbol\) [taxid: $tax_id] ";
 }
   
 }
@@ -99,7 +138,7 @@ return "1"; #check if there is some information. If not set it as 1 and pass to 
 
 foreach my $row (@$meropsRESDB) {
      my ($mernum, $code, $protein, $type) = @$row;
-     return " $type: $protein ($mernum:$code)";
+     return "$type: $protein ($mernum:$code) ";
 }
   
 }
@@ -129,7 +168,7 @@ return "1"; #check if there is some information. If not set it as 1 and pass to 
 
 foreach my $row (@$rfamRESDB) {
      my ($desc, $rfamID, $rfamACC) = @$row;
-     return " RFAM: $desc($rfamACC:$rfamID)";
+     return "RFAM: $desc($rfamACC:$rfamID) ";
 }
   
 }
@@ -160,7 +199,7 @@ return "1"; #check if there is some information. If not set it as 1 and pass to 
 
 foreach my $row (@$pfamRESDB) {
      my ($desc, $pfamID, $pfamACC) = @$row;
-     return " PFAM: $desc($pfamACC:$pfamID)";
+     return "PFAM: $desc($pfamACC:$pfamID) ";
 }
   
 }
@@ -168,38 +207,44 @@ foreach my $row (@$pfamRESDB) {
 
 ############################################# Routines END
 
-open FILE, $infile or die $!;
-
+open FILE, "$rundir/$PRJ\_header.txt" or die $!;
+open(my $descFILE, '>', "$rundir/$PRJ\_DESC.txt");
 #Start looping the fasta file
 while (my $fstHEADER = <FILE>) {
-  if ($fstHEADER =~ s/^>//) { # Get the header
-    #$fstHEADER =~ s/^>(.*)\s+cov(.*)\n/\1/;
-    my @fstDESC = split /\s/, $fstHEADER;
-    #print $fstDESC[0]."\n"; #Just the first word
-    print $fstDESC[0]."\t"; 
-    my $blastRES1 = blastRES($fstDESC[0]); # call blastRES to check and mount blast description of the contig
-    my $meropsRES1 = meropsRES($fstDESC[0]); # call meropsRES to mount peptidase annotation
-    my $rfamRES1 = rfamRES($fstDESC[0]); # call rfamRES to mount RNA families annotation
-    my $pfamRES1 = pfamRES($fstDESC[0]); # call rfamRES to mount Protein families annotation
+    $fstHEADER =~ s/\n//g;
+#     print $fstHEADER."\n"; #Just the first word
+    print $descFILE $fstHEADER."\t"; 
+    my $blastRES1 = blastRES($fstHEADER); # call blastRES to check and mount blast description of the contig
+    my $meropsRES1 = meropsRES($fstHEADER); # call meropsRES to mount peptidase annotation
+    my $rfamRES1 = rfamRES($fstHEADER); # call rfamRES to mount RNA families annotation
+    my $pfamRES1 = pfamRES($fstHEADER); # call rfamRES to mount Protein families annotation
     #check if there are some information to present
     #if both searchs does not return any results mark this as UNKNOWN ANNOTATION
     if (($blastRES1 eq  1) && ($meropsRES1 eq 1) && ($rfamRES1 eq 1) && ($pfamRES1 eq 1)) {
-      print "UNKNOWN ANNOTATION";
+      print $descFILE "UNKNOWN ANNOTATION";
     } else {
       unless ($blastRES1 eq 1) {
-        print "$blastRES1";
+        print $descFILE "$blastRES1";
       }
       unless ($meropsRES1 eq 1) {
-       print $meropsRES1;
+       print $descFILE $meropsRES1;
       }
       unless ($rfamRES1 eq 1) {
-      print $rfamRES1;
+      print $descFILE $rfamRES1;
       }
       unless ($pfamRES1 eq 1) {
-      print $pfamRES1;
+      print $descFILE $pfamRES1;
       }
     } #close if there are results from blast and merops
-    print "\n"; #new line
-  } #close if header
+    print $descFILE "\n"; #new line
+    $seqNUM ++; #COUNT SEQS
+    #print some statistics
+    print "Running at ",timing($seqNUM)," sequences per minute\n";
 } #close while loop
 close(FILE);
+close $descFILE;
+
+my $finalTIME = time() / 60;
+my $finaltotTIME = $finalTIME - $strtTIME;
+my $avrgTIME = $seqNUM / $finaltotTIME;
+print "All done running in ",$finaltotTIME,"  minutes averaging ".$avrgTIME." sequences per minute\n";

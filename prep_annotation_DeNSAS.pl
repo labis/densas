@@ -3,23 +3,34 @@
 use Getopt::Long;
 use strict;
 use DBI;
+use Cwd qw();
+use File::Basename;
+
+####################
+#GET THE CONFIG FILE
+####################
+
+my $name = basename($0);
+my ($real_path) = Cwd::abs_path($0)  =~ m/(.*)$name/i;
+require "$real_path/config.pl";
 
 ####################
 #Get all the options
 ####################
 
-my $split_seqs=1000;
+our ($platform, $database, $host, $port, $user, $pw, $split_seqs, $rundir, $PRJ, $blast_run, $rfam_run, $PFAM_run, $DNSASDIR);
+# my $split_seqs=1000;
 my $count=0;
 my $filenum=0;
 my $len=0;
-my $rundir = "./DENSAS_an";
-my $PRJ = "DENSAS";
+# my $rundir = "./DENSAS_an";
+# my $PRJ = "DENSAS";
 my $infile = "";
-my $blast_run = "run_blast_DeNSAS.sh";
-my $rfam_run = "run_Rfam_DeNSAS.sh";
-my $PFAM_run = "run_Pfam_DeNSAS.sh";
+# my $blast_run = "run_blast_DeNSAS.sh";
+# my $rfam_run = "run_Rfam_DeNSAS.sh";
+# my $PFAM_run = "run_Pfam_DeNSAS.sh";
 my $filename;
-my $DNSASDIR = "/home/mmbrand/annotate/Runscripts/";
+# my $DNSASDIR = "/home/mmbrand/annotate/Runscripts/";
 
 GetOptions ('split=s' => \$split_seqs,
             'rundir=s' => \$rundir,
@@ -42,14 +53,14 @@ my $out_template="${PRJ}_NUMBER.fasta";
 #CONFIG DB VARIABLES
 #####################
 
-
-my $platform = "mysql";
-my $database = "annotate";
-my $host = "143.106.4.249";
-#my $host = "localhost";
-my $port = "3306";
-my $user = "annotate";
-my $pw = "b10ine0!";
+# 
+# my $platform = "mysql";
+# my $database = "annotate";
+# my $host = "143.106.4.249";
+# #my $host = "localhost";
+# my $port = "3306";
+# my $user = "annotate";
+# my $pw = "b10ine0!";
 
 #Conects to the SQLite database
 my $dbh = DBI->connect("dbi:mysql:$database:$host:$port", "$user", "$pw",
@@ -222,8 +233,29 @@ while (<$fh>) {
     print SHORT "$_\n";
 }
 close(SHORT);
-
 warn "\nSplit $count FASTA records in $. lines, with total sequence length $len\nCreated $filenum files like $filename\n\n";
+
+#########################
+#GET THE SEQUENCE NAMES
+#########################
+
+open(FASTAhdr, $infile);
+open (FASTAhdrfile, ">$rundir/$PRJ\_header.txt");
+while(<FASTAhdr>) {
+    chomp($_);
+    if ($_ =~  m/^>/ ) {
+        my $header = $_;
+        $header =~ s/\>([^\s]+).*/$1/i;
+        print FASTAhdrfile "$header\n";
+    }
+}
+close(FASTAhdrfile);
+
+###################
+#SEND TO EXECUTION
+###################
+
+
 print "Sending to the queue system\n";
 # print "qsub -t 1-${filenum} ${DNSASDIR}/$blast_run -N ${PRJ}_blast -d ./ -o $rundir/OUT/BLAST.out -v 'RUNDIR=$rundir, FSTDIR=$fastadir, DNSASDIR=$DNSASDIR, PRJ=$PRJ, where=2'\n";
 # print "qsub -t 1-${filenum} ${DNSASDIR}/$blast_run -N ${PRJ}_blast -d ./ -o $rundir/OUT/MEROPSout -v 'RUNDIR=$rundir, FSTDIR=$fastadir, DNSASDIR=$DNSASDIR, PRJ=$PRJ, where=4'\n";

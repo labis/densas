@@ -4,26 +4,38 @@ use DBI;
 use List::MoreUtils qw(uniq);
 use List::Util qw(sum);
 use Getopt::Long;
-my ($fstFILE,$ANNOT_file,$PRJ);
-    GetOptions ('infile=s' => \$fstFILE,'outfile=s' => \$ANNOT_file, 'prj=s' => \$PRJ);
-    if ((!$PRJ) || (!$fstFILE)|| (!$ANNOT_file)) {
-    print "Some required arguments are missing.\nYou must use this as follow:\n$0 --prj PROJECT --infile FASTA --outfile ANNOT file\n";
+use Cwd qw();
+use File::Basename;
+use POSIX;
+
+####################
+#GET THE CONFIG FILE
+####################
+
+my $name = basename($0);
+my ($real_path) = Cwd::abs_path($0)  =~ m/(.*)$name/i;
+require "$real_path/config.pl";
+
+
+my ($rundir,$ANNOT_file,$PRJ);
+    GetOptions ('rundir=s' => \$rundir,'outfile=s' => \$ANNOT_file, 'prj=s' => \$PRJ);
+    if ((!$PRJ) || (!$rundir)|| (!$ANNOT_file)) {
+    print "Some required arguments are missing.\nYou must use this as follow:\n$0 --prj PROJECT --rundir /PATH/TO/THE/RUNDIR/ --outfile ANNOT_file\n";
     exit 1
 }
 
+################################
+#TEST IF THE HEADER FILE EXISTS
+################################
+
+unless (-e "$rundir/$PRJ\_header.txt") {
+  
+  die "Dammit Lab Goblins!! Something is terribly wrong!\nI could not find the Header file ($rundir/$PRJ\_header.txt).\nPlease check where is this file and try again\n";
+}
 
 # CONFIG VARIABLES
-my $st_time = time(); # set the starting time for calculation
-my $platform = "mysql";
-my $database = "annotate";
-my $host = "143.106.4.249";
-my $port = "3306";
-my $user = "annotate";
-my $pw = "b10ine0!";
-#my $fstFILE   = $ARGV[0];
-    #my $usage = "You must use this as follow:\n perl Make_an_GO.pl [fasta file] [ANNOT file]\n";
-    #my $fstFILE = shift or die $usage;
-    #my $ANNOT_file = shift or die $usage;
+my $st_time = time() / 60; # set the starting time for calculation
+our ($platform, $database, $host, $port, $user, $pw, $split_seqs, $blast_run, $rfam_run, $PFAM_run, $DNSASDIR);
 
 #Conects to the MySQL database
 my $dbh = DBI->connect("dbi:mysql:$database:$host:$port", "$user", "$pw",
@@ -41,7 +53,7 @@ SELECT
 FROM $PRJ\_blastRESULTS
   INNER JOIN gi2uniprot
     ON $PRJ\_blastRESULTS.seqGI = gi2uniprot.GI
-WHERE AND $PRJ\_blastRESULTS.pident >= 40
+WHERE $PRJ\_blastRESULTS.pident >= 40
 AND $PRJ\_blastRESULTS.Seqname = '".$seqNAME_blst."'
 ")
   or die "print unable to connect to the DB";
@@ -191,8 +203,7 @@ foreach my $row (@$MRPS2GORESDB) {
      my ($GO_RES) = @$row;
      my $TO_TO_GO = "$seqNAME_blst-$GO_RES";
      push(@MRPS_TO_GO, $TO_TO_GO);
-     #print "$seqNAME_blst\t$GO_RES\t$GO_CASE\n"; #print the GO search output
-     
+    
 }
 return @MRPS_TO_GO;
 ########## End Blast search
@@ -201,7 +212,7 @@ return @MRPS_TO_GO;
 
 sub timing{
   my ($seqN) = @_; # Get the uniprot ACC to consult
-  my $endtime = time();
+  my $endtime = time() / 60;
   my $runtime = $endtime - $st_time;
   return $runtime;
 
@@ -209,7 +220,7 @@ sub timing{
 
 ################################# LOOP File
 
-open FILE, $fstFILE or die $!; # open fasta file to search for GOs
+# open FILE, $rundir or die $!; # open fasta file to search for GOs
 #Start looping the fasta file
 print "Step 1: Reading fasta file and searching for annotation\n";
 my @SUPER_GO; # create an array to store all the GO annotation
@@ -217,30 +228,28 @@ my @UNIQ_GO; # create an array to store the unique GO annotation summarizing BLA
 my @timing; #create a timing array for debug
 my $i = 0;
 my $o = 0;
+open FILE, "$rundir/$PRJ\_header.txt" or die $!; # open Header file to search for GOs
 while (my $fstHEADER = <FILE>) {
-  if ($fstHEADER =~ s/^>//) { # Get the header
-        my @fstDESC = split /\s/, $fstHEADER;
-        #print $fstDESC[0]."go\n"; #Just for debug, print the sequence name from file
+$fstHEADER =~ s/\n//g;
         #Go to blast results, check for best hits and retrive UNIPROT
-        my $blastRES1 = blastRES($fstDESC[0]); # call blastRES to check and mount blast description of the contig
+        my $blastRES1 = blastRES($fstHEADER); # call blastRES to check and mount blast description of the contig
         if ($blastRES1 ne "") { # Check if there are some results, if yes retrive GOs.
-            #print "there are some things here\t$blastRES1\n";
-           my @BLST_GO = UNIPROT2GO($blastRES1,$fstDESC[0]); # Call subroutine and get all the annotation from BLAST
-           my @RFAM_GO = RFAM2GO($fstDESC[0]); # Call subroutine RFAM and get all the annotation
-           my @PFAM_GO = PFAM2GO($fstDESC[0]); # Call subroutine PFAM and get all the annotation
-           my @MRPS_GO = MRPS2GO($fstDESC[0]); # Call subroutine PFAM and get all the annotation
+           my @BLST_GO = UNIPROT2GO($blastRES1,$fstHEADER); # Call subroutine and get all the annotation from BLAST
            push(@SUPER_GO, @BLST_GO); # put all the results from blast into array @SUPER_GO
+           } # Close if 
+           my @RFAM_GO = RFAM2GO($fstHEADER); # Call subroutine RFAM and get all the annotation
+           my @PFAM_GO = PFAM2GO($fstHEADER); # Call subroutine PFAM and get all the annotation
+           my @MRPS_GO = MRPS2GO($fstHEADER); # Call subroutine PFAM and get all the annotation
            push(@SUPER_GO, @RFAM_GO); # put all the results from RFAM into array @SUPER_GO
            push(@SUPER_GO, @PFAM_GO); # put all the results from PFAM into array @SUPER_GO
            push(@SUPER_GO, @MRPS_GO); # put all the results from MEROPS into array @SUPER_GO
            my $timer = timing($i);
            push(@timing, $timer);
-          $i ++;
-           } # Close if 
-         $o ++;
-        } #close if Get the Header
+#            $i ++;
+           $o ++;
+#         } #close if Get the Header
   } #Close While FILE
-print "Step 1 complete on ".timing()." seconds\n Let´s continue.\nStep 2: Generating GO annotation and saving to file\n";
+print "Step 1 complete on ".floor(timing())." minutes\n Let´s continue.\nStep 2: Generating GO annotation and saving to file\n";
 
 ################################# End LOOP file
 
@@ -273,5 +282,5 @@ print "1"; #check if there is some information. If not set it as 1 and pass to t
   } # Close foreach
 close $fh; # close file to write
 #output some statistics
-my $runtime = sum(@timing / scalar(@SUPER_GO));
-print "It was searched $o Contigs, $i with blast results.\n".scalar(@unique_GO)." unique GOs from ".scalar(@SUPER_GO)." available for this dataset\nThis was done on ".timing()." seconds at an average of $runtime seconds / sequence.\nThe results were saved on $ANNOT_file\n";
+my $runtime = sum(scalar(@SUPER_GO) / @timing);
+print "It was searched $o Contigs, $i with annotation results.\n".scalar(@unique_GO)." unique GOs from ".scalar(@SUPER_GO)." available for this dataset\nThis was done on ".timing()." minutes at an average of $runtime sequences per minute.\nThe results were saved on $ANNOT_file\n";

@@ -30,6 +30,7 @@ my $infile = "";
 # my $rfam_run = "run_Rfam_DeNSAS.sh";
 # my $PFAM_run = "run_Pfam_DeNSAS.sh";
 my $filename;
+my $fdb = 1;
 # my $DNSASDIR = "/home/mmbrand/annotate/Runscripts/";
 
 GetOptions ('split=s' => \$split_seqs,
@@ -176,7 +177,11 @@ CREATE TABLE IF NOT EXISTS `$PRJ\_RFAM`(
   # BE NICE AND EXIT
   ##############################
 
-die "Sorry, the project name $PRJ was already choosen :(\nBut, no fear just choose another one ;)\n";
+if ($fdb eq 1) {
+    die "Sorry, the project name $PRJ was already choosen :(\nBut, no fear just choose another one ;)\n";
+    } else {
+        print "The project name $PRJ exists, but, -fdb was set to 0, so, let's continue";
+        }
 }
 
                    

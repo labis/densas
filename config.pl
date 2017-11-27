@@ -27,4 +27,4 @@ $PRJ = "DENSAS";
 $blast_run = "run_blast_DeNSAS.sh";
 $rfam_run = "run_Rfam_DeNSAS.sh";
 $PFAM_run = "run_Pfam_DeNSAS.sh";
-$DNSASDIR = "/home/mmbrand/annotate/Runscripts/";
+$DNSASDIR = "/share/thunderstorm/NG282/AulaDE/ANNOT/DeNSAS/";

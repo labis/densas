@@ -1,6 +1,6 @@
 #!/bin/bash
 #PBS -m abe
-#PBS -l nodes=1:ppn=4
+#PBS -l nodes=1:ppn=2
 #PBS -l walltime=350:00:00
 #PBS -q default
 #PBS -j oe
@@ -27,8 +27,8 @@ hostname
 
 if [ $where = 1 ]; then
 echo "Inserting blastx using refseq_protein database"
-echo "Running: /share/thunderstorm/perl5/perls/perl-5.18.1/bin/perl ${DNSASDIR}/insert_blast_results.pl -i $BLSTDIR/${PRJ}_blastx_$PBS_ARRAYID.tsv --prj ${PRJ}"
-/share/thunderstorm/perl5/perls/perl-5.18.1/bin/perl ${DNSASDIR}/insert_blast_results.pl -i $BLSTDIR/${PRJ}_blastx_$PBS_ARRAYID.tsv --prj ${PRJ}
+echo "Running: /share/thunderstorm/perl5/perls/perl-5.18.1/bin/perl ${DNSASDIR}/insert_blast_results_createTXT.pl -i $BLSTDIR/${PRJ}_blastx_$PBS_ARRAYID.tsv --prj ${PRJ}"
+/share/thunderstorm/perl5/perls/perl-5.18.1/bin/perl ${DNSASDIR}/insert_blast_results_createTXT.pl -i $BLSTDIR/${PRJ}_blastx_$PBS_ARRAYID.tsv --prj ${PRJ}
 fi
 
 #############
@@ -37,8 +37,8 @@ fi
 
 if [ $where = 2 ]; then
 echo "Inserting DIAMOND using refseq_protein database for DIAMOND"
-/share/thunderstorm/perl5/perls/perl-5.18.1/bin/perl ${DNSASDIR}/insert_blast_results.pl -i $BLSTDIR/${PRJ}_blastx_$PBS_ARRAYID.tsv --prj ${PRJ}
-echo "/share/thunderstorm/perl5/perls/perl-5.18.1/bin/perl ${DNSASDIR}/insert_blast_results.pl -i $BLSTDIR/${PRJ}_blastx_$PBS_ARRAYID.tsv --prj ${PRJ}"
+/share/thunderstorm/perl5/perls/perl-5.18.1/bin/perl ${DNSASDIR}/insert_blast_results_createTXT.pl -i $BLSTDIR/${PRJ}_blastx_$PBS_ARRAYID.tsv --prj ${PRJ}
+echo "/share/thunderstorm/perl5/perls/perl-5.18.1/bin/perl ${DNSASDIR}/insert_blast_results_createTXT.pl -i $BLSTDIR/${PRJ}_blastx_$PBS_ARRAYID.tsv --prj ${PRJ}"
 fi
 
 #############
@@ -47,8 +47,8 @@ fi
 
 if [ $where = 3 ]; then
 echo "Inserting blastx using MEROPS database"
-echo "Running /share/thunderstorm/perl5/perls/perl-5.18.1/bin/perl ${DNSASDIR}/insert_merops_results.pl -i $MRPSDIR/${PRJ}_Blastx_$PBS_ARRAYID.tsv --prj ${PRJ}"
-/share/thunderstorm/perl5/perls/perl-5.18.1/bin/perl ${DNSASDIR}/insert_merops_results.pl -i $MRPSDIR/${PRJ}_Blastx_$PBS_ARRAYID.tsv --prj ${PRJ}
+echo "Running /share/thunderstorm/perl5/perls/perl-5.18.1/bin/perl ${DNSASDIR}/insert_merops_results_createTXT.pl -i $MRPSDIR/${PRJ}_Blastx_$PBS_ARRAYID.tsv --prj ${PRJ}"
+/share/thunderstorm/perl5/perls/perl-5.18.1/bin/perl ${DNSASDIR}/insert_merops_results_createTXT.pl -i $MRPSDIR/${PRJ}_Blastx_$PBS_ARRAYID.tsv --prj ${PRJ}
 fi
 
 #############
@@ -57,8 +57,8 @@ fi
 
 if [ $where = 4 ]; then
 echo "Inserting PFAM"
-echo "running /share/thunderstorm/perl5/perls/perl-5.18.1/bin/perl ${DNSASDIR}/insert_pfam_results.pl --prj $PRJ --infile $PFAMDIR/${PRJ}_PFAM_$PBS_ARRAYID.tsv"
-/share/thunderstorm/perl5/perls/perl-5.18.1/bin/perl ${DNSASDIR}/insert_pfam_results.pl --prj $PRJ --infile $PFAMDIR/${PRJ}_PFAM_$PBS_ARRAYID.tsv
+echo "running /share/thunderstorm/perl5/perls/perl-5.18.1/bin/perl ${DNSASDIR}/insert_pfam_results_createTXT.pl --prj $PRJ --infile $PFAMDIR/${PRJ}_PFAM_$PBS_ARRAYID.tsv"
+/share/thunderstorm/perl5/perls/perl-5.18.1/bin/perl ${DNSASDIR}/insert_pfam_results_createTXT.pl --prj $PRJ --infile $PFAMDIR/${PRJ}_PFAM_$PBS_ARRAYID.tsv
 fi
 
 #############
@@ -67,6 +67,6 @@ fi
 
 if [ $where = 5 ]; then
 echo "Inserting RFAM"
-echo "Running /share/thunderstorm/perl5/perls/perl-5.18.1/bin/perl ${DNSASDIR}/insert_rfam_results.pl -i $RFAMDIR/${PRJ}_RFAM_$PBS_ARRAYID.tsv --prj $PRJ"
-/share/thunderstorm/perl5/perls/perl-5.18.1/bin/perl ${DNSASDIR}/insert_rfam_results.pl -i $RFAMDIR/${PRJ}_RFAM_$PBS_ARRAYID.tsv --prj $PRJ
+echo "Running /share/thunderstorm/perl5/perls/perl-5.18.1/bin/perl ${DNSASDIR}/insert_rfam_results_createTXT.pl -i $RFAMDIR/${PRJ}_RFAM_$PBS_ARRAYID.tsv --prj $PRJ"
+/share/thunderstorm/perl5/perls/perl-5.18.1/bin/perl ${DNSASDIR}/insert_rfam_results_createTXT.pl -i $RFAMDIR/${PRJ}_RFAM_$PBS_ARRAYID.tsv --prj $PRJ
 fi

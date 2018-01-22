@@ -1,16 +1,23 @@
-DOWNLDATA="/home/mmbrand/Downloads/DeNSAS"
+#!/bin/bash
 
+DOWNLDATA="/home/mmbrand/Downloads/DeNSAS"
 ASSDBDIR="/home/mmbrand/Downloads/DeNSAS/assocdb/go_201606-assocdb-tables"
 
 #Check if $DOWNLDATA exists, if not create it
 if [ ! -d "$DOWNLDATA" ]; then
     mkdir $DOWNLDATA
 fi
+# Go to the Downlod dir
 cd $DOWNLDATA
-wget http://densas.bioinfoguy.net/update/up_URL.txt
-aria2c -i up_URL.txt -d $DOWNLDATA -s 9
+
+# get updated list 
+wget -N http://densas.bioinfoguy.net/update/up_URL.txt
+
+#start the downloading
+aria2c -c -i up_URL.txt -d $DOWNLDATA -s 10 -j 10 -x 2 -V true --checksum
+
 # 
-# #Tabelas
+# #Update database
 # 
 # #############
 # #Association

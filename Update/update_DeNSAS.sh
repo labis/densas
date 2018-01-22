@@ -7,7 +7,8 @@ if [ ! -d "$DOWNLDATA" ]; then
     mkdir $DOWNLDATA
 fi
 cd $DOWNLDATA
-aria2c -i up_URL.txt -d $DOWNLDATA -s 6
+wget http://densas.bioinfoguy.net/update/up_URL.txt
+aria2c -i up_URL.txt -d $DOWNLDATA -s 9
 # 
 # #Tabelas
 # 

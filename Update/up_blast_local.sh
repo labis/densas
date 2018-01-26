@@ -67,13 +67,13 @@ cut -f1 -d" " pepunit_limpa.lib | sed -e 's/\(\/\|\:\)//g' > pepunit_limpa3.lib
 #CREATE DATABASES
 ##################
 
-~/programs/blast/makeblastdb -in pepunit_limpa3.lib -dbtype 'prot' -title 'MEROPS $TODAY' -out ../MEROPS &
-~/programs/blast/blastdbcmd -db ../refseq_protein -dbtype prot -out refseq_protein.fasta -entry all &
+/share/programs/blast/makeblastdb -in pepunit_limpa3.lib -dbtype 'prot' -title 'MEROPS $TODAY' -out ../MEROPS &
+/share/programs/blast/blastdbcmd -db ../refseq_protein -dbtype prot -out refseq_protein.fasta -entry all &
 wait
 NODEP=$(hostname)
 if [ `hostname` != 'thunder-1-2.local' ]; then
-~/programs/downloads/diamond makedb --in refseq_protein.fasta -d ../refseq_DIAMOND -b 5 -p $PBS_NP
-~/programs/downloads/diamond makedb --in pepunit_limpa3.lib -d ../MEROPS_diamond -b 5 -p $PBS_NP
+/share/programs/downloads/diamond makedb --in refseq_protein.fasta -d ../refseq_DIAMOND -b 5 -p $PBS_NP
+/share/programs/downloads/diamond makedb --in pepunit_limpa3.lib -d ../MEROPS_diamond -b 5 -p $PBS_NP
 fi
 
 #######################
@@ -84,7 +84,7 @@ rm -rf /state/partition1/db/pfam/*
 mv Pfam-A.hmm.gz /state/partition1/db/pfam/
 cd /state/partition1/db/pfam/
 gunzip Pfam-A.hmm.gz
-~/programs/hmmer/binaries/hmmpress Pfam-A.hmm
+/share/programs/hmmer/binaries/hmmpress Pfam-A.hmm
 rm -rf Pfam-A.hmm
 
 #######################
@@ -92,11 +92,15 @@ rm -rf Pfam-A.hmm
 #######################
 
 rm -rf /state/partition1/db/rfam/*
+
+if [ ! -d "/state/partition1/db/rfam/" ]; then
+    mkdir  /state/partition1/db/rfam/
+fi
 mv /state/partition1/db/blastdb/compressed/Rfam.seed.gz /state/partition1/db/rfam/
 cd /state/partition1/db/rfam/
 gunzip Rfam.seed.gz
-~/programs/hmmer/binaries/hmmbuild Rfam.seed.hmm Rfam.seed
-~/programs/hmmer/binaries/hmmpress Rfam.seed.hmm
+/share/programs/hmmer/binaries/hmmbuild Rfam.seed.hmm Rfam.seed
+/share/programs/hmmer/binaries/hmmpress Rfam.seed.hmm
 rm -rf Rfam.seed Rfam.seed.hmm
 
 cd ..

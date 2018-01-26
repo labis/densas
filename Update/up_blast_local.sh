@@ -32,7 +32,7 @@ fi
 #COPY FILES TO LOCAL
 #####################
 
-rsync -ruth $blastdir /state/partition1/db/blastdb/compressed/
+rsync -ruth --exclude md5 $blastdir /state/partition1/db/blastdb/compressed/
 
 ##################
 #UNCOMPRESS FILES

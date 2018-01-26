@@ -7,7 +7,7 @@
 #PBS -j oe
 #PBS -o update_BLAST.out
 
-BLASTDIR=/share/thunderstorm/db/blastdb/compressed/Update
+BLASTDIR=/share/thunderstorm/db/blastdb/compressed/
 SCRIPTSDIR=/home/mmbrand/DeNSAS/Update
 
 cd $BLASTDIR
@@ -62,13 +62,13 @@ cd $SCRIPTSDIR
 for i in {1..6}
 do
    echo "Lançando Thunder-0-$i"
-   sed -e "s/NUM/0-$i/g" up_blast_local.sh | qsub -v "blastdir=${BLASTDIR}/compressed/"
+   sed -e "s/NUM/0-$i/g" up_blast_local.sh | qsub -v "blastdir=${BLASTDIR}"
    sleep 60
 done
 
 for i in {2..2}
 do
    echo "Lançando Thunder-1-$i"
-   sed -e "s/NUM/1-$i/g" up_blast_local.sh | qsub -l nodes=thunder-1-2:ppn=4 -v "blastdir=${BLASTDIR}/compressed/"
+   sed -e "s/NUM/1-$i/g" up_blast_local.sh | qsub -l nodes=thunder-1-2:ppn=4 -v "blastdir=${BLASTDIR}"
 done
 rm -rf ${BLASTDIR}/compressed/*.md5

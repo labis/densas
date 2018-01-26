@@ -8,7 +8,7 @@
 #PBS -o update_BLAST.out
 
 BLASTDIR=/share/thunderstorm/db/blastdb/compressed/Update
-SCRIPTSDIR=/home/mmbrand/DeNSAS/
+SCRIPTSDIR=/home/mmbrand/DeNSAS/Update
 
 cd $BLASTDIR
 

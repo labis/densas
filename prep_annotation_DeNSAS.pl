@@ -279,6 +279,15 @@ my $MRPSDIR="$RUNDIR/MEROPS";
 my $PFAMDIR="$RUNDIR/PFAM";
 my $RFAMDIR="$RUNDIR/RFAM";
 my $FSTDIR="$RUNDIR/fasta";
+
+###############################
+#CREATE FILE FOR DATABASE INPUT
+###############################
+
+open(my $fh, '>', "$rundir/manual.txt");
+print $fh "Meu primeiro relatório gerado pelo Perl\n";
+close $fh;
+
 print "qsub ${DNSASDIR}/run_insert_results_DeNSAS.sh -t 1-${filenum}%3 -N ${PRJ}_inDIAM -d ./ -o $RUNDIR/OUT/Insert_BLASTDiamon.out -v 'RUNDIR=$RUNDIR, DNSASDIR=$DNSASDIR, PRJ=$PRJ, where=2'\n";
 print "qsub ${DNSASDIR}/run_insert_results_DeNSAS.sh -t 1-${filenum}%3 -N ${PRJ}_inMRPS -d ./ -o $RUNDIR/OUT/Insert_MEROPSDiamon.out -v 'RUNDIR=$RUNDIR, DNSASDIR=$DNSASDIR, PRJ=$PRJ, where=3'\n";
 print "qsub ${DNSASDIR}/run_insert_results_DeNSAS.sh -t 1-${filenum}%3 -N ${PRJ}_inPFAM -d ./ -o $RUNDIR/OUT/Insert_PFAM.out -v 'RUNDIR=$RUNDIR, DNSASDIR=$DNSASDIR, PRJ=$PRJ, where=4'\n";

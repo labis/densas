@@ -61,7 +61,7 @@ fi
 
 if [ $where = 2 ]; then
 echo "running DIAMOND using refseq_protein database for DIAMOND"
-/share/programs/downloads/diamond blastx --threads $NP -d /state/partition1/db/blastdb/nr_DIAMOND -q $TMPDIR/${PRJ}_$PBS_ARRAYID.fasta -a $BLSTDIR/${PRJ}_${PBS_ARRAYID}_Diamond -t $TMPDIR -k $MaxSEQ -c 5 -e $Evalue
+/share/programs/downloads/diamond blastx --threads $NP -d /state/partition1/db/blastdb/refseq_DIAMOND -q $TMPDIR/${PRJ}_$PBS_ARRAYID.fasta -a $BLSTDIR/${PRJ}_${PBS_ARRAYID}_Diamond -t $TMPDIR -k $MaxSEQ -c 5 -e $Evalue
 /share/programs/downloads/diamond view -a $BLSTDIR/${PRJ}_${PBS_ARRAYID}_Diamond.daa -o $BLSTDIR/${PRJ}_blastx_$PBS_ARRAYID.tsv -f tab
 qsub ${DNSASDIR}/run_insert_results_DeNSAS.sh -t $PBS_ARRAYID -N ${PRJ}_inDIA -d ./ -o $RUNDIR/OUT/In_Diamon_$PBS_ARRAYID.out -v "RUNDIR=$RUNDIR, DNSASDIR=$DNSASDIR, PRJ=$PRJ, where=2"
 fi

@@ -57,11 +57,11 @@ my $out_template="${PRJ}_NUMBER.fasta";
 # 
 # my $platform = "mysql";
 # my $database = "annotate";
-# my $host = "143.106.4.249";
+# my $host = "";
 # #my $host = "localhost";
 # my $port = "3306";
 # my $user = "annotate";
-# my $pw = "b10ine0!";
+# my $pw = "";
 
 #Conects to the SQLite database
 my $dbh = DBI->connect("dbi:mysql:$database:$host:$port", "$user", "$pw",
@@ -270,7 +270,7 @@ my $result_blast = system("qsub -t 1-${filenum} ${DNSASDIR}/$blast_run -N ${PRJ}
 my $result_MEROPS = system("qsub -t 1-${filenum} ${DNSASDIR}/$blast_run -N ${PRJ}_blast -d ./ -o $rundir/OUT/MEROPSout -v 'RUNDIR=$rundir, FSTDIR=$fastadir, DNSASDIR=$DNSASDIR, PRJ=$PRJ, where=4'");
 my $result_RFAM = system("qsub -t 1-${filenum} ${DNSASDIR}/$rfam_run -N ${PRJ}_rfam -d ./ -o $rundir/OUT/RFAM.out -v 'RUNDIR=$rundir, FSTDIR=$fastadir, DNSASDIR=$DNSASDIR, PRJ=$PRJ'");
 my $result_PFAM = system("qsub -t 1-${filenum} ${DNSASDIR}/$PFAM_run -N ${PRJ}_pfam -d ./ -o $rundir/OUT/PFAM.out -v 'RUNDIR=$rundir, FSTDIR=$fastadir, DNSASDIR=$DNSASDIR, PRJ=$PRJ'");
-#print "Blast is running under $result_blast and RFAM under $result_RFAM";
+print "Blast is running under $result_blast and RFAM under $result_RFAM";
 # 
 print "Done\n Have a nice day \;)\n";
 my $RUNDIR = $rundir;

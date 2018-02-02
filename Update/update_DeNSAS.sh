@@ -162,3 +162,10 @@ mysqlimport -uannotate -pb10ine0! -h 143.106.4.169 --use-threads=10 --local --de
 
 zcat gi_taxid_nucl.zip gi_taxid_prot.zip > gi2tax.txt
 mysqlimport -uannotate -pb10ine0! -h 143.106.4.169 --use-threads=10 --local --delete -d densas $DOWNLDATA/gi2tax.txt
+
+############
+#gi2uniprot
+############
+
+perl DeNSAS/Update/Create_gi2uniprot2.pl $DOWNLDATA/idmapping.tb > gi2uniprot.txt
+mysqlimport -uannotate -pb10ine0! -h 143.106.4.169 --use-threads=10 --local --delete --columns "UniprotKB_acc,UniprotKB_id,GI" -d densas $DOWNLDATA/gi2uniprot.txt

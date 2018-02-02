@@ -12,7 +12,7 @@ while (my $line = <$data>) {
   my @GIs = split /;/, $GI;
   foreach my $loopGI (@GIs)
   {
-    print "$UniprotAcc\t$UniprotId\t$loopGI\n";
+    print "$UniprotId\t$UniprotAcc\t$loopGI\n";
     }
   }
 close( $data );

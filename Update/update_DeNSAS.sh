@@ -114,14 +114,14 @@ mysqlimport -uannotate -pb10ine0! -h 143.106.4.169 --use-threads=10 --local --de
 ###############
 
 mv domain.txt MEROPS_domain.txt
-mysqlimport -uannotate -pb10ine0! -h 143.106.4.169 --use-threads=10 --local --delete -d densas $DOWNLDATA/MEROPS_domain.txt
+mysqlimport -uannotate -pb10ine0! -h 143.106.4.169 --use-threads=30 --local --delete --fields-enclosed-by=\" -d densas $DOWNLDATA/MEROPS_domain.txt
 
 ###########
 #MEROPS2GO
 ###########
 
 mv GO_annotation.txt MEROPS2GO.txt
-mysqlimport -uannotate -pb10ine0! -h 143.106.4.169 --use-threads=10 --local --delete -d densas $DOWNLDATA/MEROPS2GO.txt
+mysqlimport -uannotate -pb10ine0! -h 143.106.4.169 --use-threads=30 --local --delete --fields-enclosed-by=\" -d densas $DOWNLDATA/MEROPS2GO.txt
 
 #########
 #GO_term
@@ -140,7 +140,7 @@ FROM term
 WHERE root.is_root = 1
 AND term.is_obsolete <> 1;" > $DOWNLDATA/GO_term.txt
 
-mysqlimport -uannotate -pb10ine0! -h 143.106.4.169 --use-threads=10 --local --delete -d densas $DOWNLDATA/GO_term.txt
+mysqlimport -uannotate -pb10ine0! -h 143.106.4.169 --use-threads=10 --local --ignore-lines=1 --delete -d densas $DOWNLDATA/GO_term.txt
 
 ######
 #RFAM
@@ -155,3 +155,10 @@ mysqlimport -uannotate -pb10ine0! -h 143.106.4.169 --use-threads=10 --local --de
 #########
 
 mysqlimport -uannotate -pb10ine0! -h 143.106.4.169 --use-threads=10 --local --delete --columns "rfam_id,GO_ID" -d densas $DOWNLDATA/RFAM2GO.txt
+
+########
+#gi2tax
+########
+
+zcat gi_taxid_nucl.zip gi_taxid_prot.zip > gi2tax.txt
+mysqlimport -uannotate -pb10ine0! -h 143.106.4.169 --use-threads=10 --local --delete -d densas $DOWNLDATA/gi2tax.txt

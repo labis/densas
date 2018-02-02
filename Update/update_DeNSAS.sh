@@ -93,7 +93,7 @@ wait
 
 cd $DOWNLDATA
 gunzip gene2accession.gz
-mysqlimport -uannotate -pb10ine0! -h 143.106.4.169 --use-threads=10 --local --ignore-lines=1 --columns "tax_id,GeneID,status,RNA_nucleotide_accession.version,RNA_nucleotide_gi,protein_accession.version,protein_gi,genomic_nucleotide_accession.version,genomic_nucleotide_gi,start_position_on_the_genomic_accession,end_position_on_the_genomic_accession,orientation,assembly,mature_peptide_accession.version,mature_peptide_gi,Symbol" --delete -d densas $DOWNLDATA/gene2accession
+mysqlimport -uannotate -pb10ine0! -h 143.106.4.169 --use-threads=10 --local --ignore-lines=1 --columns "tax_id,GeneID,status,RNA_nucleotide_accession,RNA_nucleotide_gi,protein_accession,protein_gi,genomic_nucleotide_accession,genomic_nucleotide_gi,start_position,end_positon,orientation,assembly" --delete -d densas $DOWNLDATA/gene2accession
 
 ##################
 #gene_association

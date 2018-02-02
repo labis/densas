@@ -1,0 +1,5 @@
+gi2tax
+gi2uniprot
+pfamA
+pfamA2GO
+tax_names

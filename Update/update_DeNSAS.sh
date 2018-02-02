@@ -100,7 +100,7 @@ mysqlimport -uannotate -pb10ine0! -h 143.106.4.169 --use-threads=10 --local --ig
 ##################
 
 zcat goa_uniprot_all.gaf.gz | cut -f 2,5,7,9 > gene_association.txt
-mysqlimport -uannotate -pb10ine0! -h 143.106.4.169 --use-threads=10 --local --delete -d densas $DOWNLDATA/gene_association.txt
+mysqlimport -uannotate -pb10ine0! -h 143.106.4.169 --use-threads=10 --local --delete --columns "Object_ID,GO_ID,Evidence,GO_aspect" -d densas $DOWNLDATA/gene_association.txt
 
 ###########
 #gene_info

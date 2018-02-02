@@ -5,7 +5,7 @@
 *gene_association
 *gene_info
 *gene_product
-gi2tax
+*gi2tax
 gi2uniprot
 *GO_term
 *graph_path

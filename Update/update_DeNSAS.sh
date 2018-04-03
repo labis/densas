@@ -169,3 +169,9 @@ mysqlimport -uannotate -pb10ine0! -h 143.106.4.169 --use-threads=10 --local --de
 
 perl DeNSAS/Update/Create_gi2uniprot2.pl $DOWNLDATA/idmapping.tb > gi2uniprot.txt
 mysqlimport -uannotate -pb10ine0! -h 143.106.4.169 --use-threads=10 --local --delete --columns "UniprotKB_acc,UniprotKB_id,GI" -d densas $DOWNLDATA/gi2uniprot.txt
+
+##########
+#pfamA2GO
+##########
+
+mysqlimport -uannotate -pb10ine0! -h 143.106.4.169 --use-threads=30 --local --delete --columns "pfamA_acc,go_id" -d densas $DOWNLDATA/pfamA2GO.txt

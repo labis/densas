@@ -38,7 +38,7 @@ if [ ! -d "/state/partition1/db/rfam/" ]; then
 fi
 
 #NP=$(($NP-4))
-rsync -vru /share/thunderstorm/db/Rfam/Rfam_12_seed* /state/partition1/db/rfam/
+rsync -vru /share/thunderstorm/db/Rfam/Rfam.hmm* /state/partition1/db/rfam/
 
 echo "Let's get started
 Check all the folders that will be used:
@@ -62,7 +62,7 @@ cp $FSTDIR/${PRJ}_$PBS_ARRAYID.fasta ./
 #   RUN RFAM
 ##############################################
 
-~/programs/hmmer/binaries/hmmscan -o temp_${PRJ}_hmm --tblout ${PRJ}_rfam.tblout --noali --cpu $NP /state/partition1/db/rfam/Rfam_12_seed.hmm ${PRJ}_$PBS_ARRAYID.fasta
+~/programs/hmmer/binaries/hmmscan -o temp_${PRJ}_hmm --tblout ${PRJ}_rfam.tblout --noali --cpu $NP /state/partition1/db/rfam/Rfam.hmm ${PRJ}_$PBS_ARRAYID.fasta
 perl ${DNSASDIR}//hmm_parser.pl ${PRJ}_rfam.tblout > $RFAMDIR/${PRJ}_RFAM_$PBS_ARRAYID.tsv
 
 ##############################################

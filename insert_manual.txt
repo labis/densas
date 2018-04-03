@@ -1,0 +1,13 @@
+PRJ=EpiP
+cd $PRJ/blastXML
+cat *.db > ${PRJ}_blastRESULTS.txt
+mysqlimport -uannotate -p -h143.106.4.169 --local --columns "Seqname,seqGI,seqACC,pident,evalue,bitscore" --use-threads=30 --delete -v densas ${PRJ}_blastRESULTS.txt
+cd ../MEROPS
+cat *.db > ${PRJ}_MEROPS.txt
+mysqlimport -uannotate -p -h143.106.4.169 --local --columns "Seqname,mernum,pident,evalue,bitscore" --use-threads=30 --delete -v densas ${PRJ}_MEROPS.txt
+cd ../PFAM
+cat *.tsv | cut -f1,2,4,5,6 > ${PRJ}_PFAM.txt 
+mysqlimport -uannotate -p -h143.106.4.169 --local --columns "Seqname,pfamA_id,pfamA_acc,Best_domain,Full_sequence" --use-threads=30 --delete -v densas ${PRJ}_PFAM.txt
+cd ../RFAM
+cut -f1,2,3,5,6 *.tsv > ${PRJ}_RFAM.txt
+mysqlimport -uannotate -p -h143.106.4.169 --local --columns "Seqname,rfam_id,rfam_acc,Best_domain,Full_sequence" --use-threads=30 --delete -v densas ${PRJ}_RFAM.txt

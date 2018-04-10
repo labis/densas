@@ -37,13 +37,14 @@ GetOptions ('split=s' => \$split_seqs,
             'rundir=s' => \$rundir,
             'prj=s' => \$PRJ,
             'infile=s' => \$infile,
+            'overdb=s' =>\$fdb,
             );
 
 # ###################################            
 # # CHECK IF ALL VARIABLES ARE THERE
 # ###################################
 if ((!$split_seqs) || (!$rundir) || (!$PRJ) || (!$infile)) {
-print "Some required arguments are missing.\nYou must use this as follow:\n$0 --split [number of sequences/file] --rundir [/where/to/output/results/ ] --prj [ PROJECT ] --infile [ FASTA FILE ]\n";
+print "Some required arguments are missing.\nYou must use this as follow:\n$0 --split [number of sequences/file] --rundir [/where/to/output/results/ ] --prj [ PROJECT ] --overdb [0|1] --infile [ FASTA FILE ]\n";
 exit 1
 }
             

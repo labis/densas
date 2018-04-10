@@ -10,8 +10,8 @@ our ($platform, $database, $host, $port, $user, $pw, $split_seqs, $rundir, $PRJ,
 #####################
 
 $platform = "mysql";
-$database = "annotate";
-$host = "143.106.4.195";
+$database = "densas";
+$host = "143.106.4.169";
 #$host = "localhost";
 $port = "3306";
 $user = "annotate";

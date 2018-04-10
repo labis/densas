@@ -37,6 +37,7 @@ GetOptions ('split=s' => \$split_seqs,
             'rundir=s' => \$rundir,
             'prj=s' => \$PRJ,
             'infile=s' => \$infile,
+            'infile=s' =>\$fdb,
             );
 
 # ###################################            

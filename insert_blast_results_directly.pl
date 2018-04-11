@@ -5,6 +5,8 @@ use Getopt::Long;
 use Data::Dumper;
 use Cwd qw();
 use File::Basename;
+use DBI;
+use DBD::mysql;
 
 ####################
 #GET THE CONFIG FILE
@@ -18,7 +20,7 @@ require "$real_path/config.pl";
 #Get all the options
 ####################
 
-our ($platform, $database, $host, $port, $user, $pw, $split_seqs, $rundir, $PRJ, $blast_run, $rfam_run, $PFAM_run, $DNSASDIR);
+our ($platform, $database, $host, $port, $user, $pw, $split_seqs, $rundir, $blast_run, $rfam_run, $PFAM_run, $DNSASDIR);
 
 
 my ($infile,$PRJ);
@@ -28,7 +30,22 @@ my ($infile,$PRJ);
     exit 1
 }
 
+########################
+#Conects to the database
+########################
 
+my $dbh = DBI->connect("dbi:mysql:$database:$host:$port", "$user", "$pw",
+                    { RaiseError => 1, AutoCommit => 1 });
+
+##################################
+# set the value of your SQL query
+##################################
+
+my $query = "INSERT INTO $PRJ\_blastRESULTS (Seqname, seqGI, seqACC, pident, evalue, bitscore) VALUES (?,?,?,?,?,?)";
+
+# prepare your statement for connecting to the database
+my $sth = $dbh->prepare($query);
+                    
 ##########################
 #Insert data into database
 ##########################
@@ -39,7 +56,10 @@ chomp;
 my ($seqname, $res, $pident, $dumb, $dumb2, $dumb3, $dumb4, $dumb5, $dumb6, $dumb7, $evalue, $bitscore) = split("\t");
 my ($descarta1, $seqGI,$descarta2,$seqACC) = split(/\|/, $res);
 #print "$seqname\t$seqGI\t$seqACC\t$pident\t$evalue\t$bitscore\n";
-print "$seqname\t$seqGI\t$seqACC\t$pident\t$evalue\t$bitscore\n";
+# print "$seqname\t$seqGI\t$seqACC\t$pident\t$evalue\t$bitscore\r";
+$sth->execute($seqname,$seqGI,$seqACC,$pident,$evalue,$bitscore) or die "Query failed: $!";
 
 } # fecha looping no arquivo e insere
 #
+print "All clear, closing here!";
+$dbh->disconnect();

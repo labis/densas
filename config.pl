@@ -11,7 +11,7 @@ our ($platform, $database, $host, $port, $user, $pw, $split_seqs, $rundir, $PRJ,
 
 $platform = "mysql";
 $database = "densas";
-$host = "143.106.4.169";
+$host = "143.106.4.232";
 #$host = "localhost";
 $port = "3306";
 $user = "annotate";
@@ -27,4 +27,4 @@ $PRJ = "DENSAS";
 $blast_run = "run_blast_DeNSAS.sh";
 $rfam_run = "run_Rfam_DeNSAS.sh";
 $PFAM_run = "run_Pfam_DeNSAS.sh";
-$DNSASDIR = "/share/thunderstorm/NG282/AulaDE/ANNOT/DeNSAS/";
+$DNSASDIR = "/home/mmbrand/DeNSAS/";

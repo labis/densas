@@ -37,8 +37,7 @@ fi
 
 if [ $where = 2 ]; then
 echo "Inserting DIAMOND using refseq_protein database for DIAMOND"
-/opt/perl/bin/perl ${DNSASDIR}/insert_blast_results_createTXT.pl -i $BLSTDIR/${PRJ}_blastx_$PBS_ARRAYID.tsv --prj ${PRJ} > $BLSTDIR/${PRJ}_blastx_$PBS_ARRAYID.db
-echo "/opt/perl/bin/perl ${DNSASDIR}/insert_blast_results_createTXT.pl -i $BLSTDIR/${PRJ}_blastx_$PBS_ARRAYID.tsv --prj ${PRJ}"
+/opt/perl/bin/perl ${DNSASDIR}/insert_blast_results_directly.pl -i $BLSTDIR/${PRJ}_blastx_$PBS_ARRAYID.tsv --prj ${PRJ}
 fi
 
 #############
@@ -47,8 +46,7 @@ fi
 
 if [ $where = 3 ]; then
 echo "Inserting blastx using MEROPS database"
-echo "Running /opt/perl/bin/perl ${DNSASDIR}/insert_merops_results_createTXT.pl -i $MRPSDIR/${PRJ}_Blastx_$PBS_ARRAYID.tsv --prj ${PRJ}"
-/opt/perl/bin/perl ${DNSASDIR}/insert_merops_results_createTXT.pl -i $MRPSDIR/${PRJ}_Blastx_$PBS_ARRAYID.tsv --prj ${PRJ} > $MRPSDIR/${PRJ}_Blastx_$PBS_ARRAYID.db
+/opt/perl/bin/perl ${DNSASDIR}/insert_merops_results_directly.pl -i $MRPSDIR/${PRJ}_Blastx_$PBS_ARRAYID.tsv --prj ${PRJ}
 fi
 
 #############

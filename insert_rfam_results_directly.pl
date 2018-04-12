@@ -40,7 +40,7 @@ my $dbh = DBI->connect("dbi:mysql:$database:$host:$port", "$user", "$pw",
 # set the value of your SQL query
 ##################################
 
-my $query = "INSERT INTO  $PRJ\_PFAM (seqname, pfamA_id, pfamA_acc, Best_domain, Full_sequence) VALUES (?,?,?,?,?)";
+my $query = "INSERT INTO  $PRJ\_RFAM (Seqname, rfam_id, rfam_acc, Best_domain, Full_sequence) VALUES (?,?,?,?,?)";
 
 # prepare your statement for connecting to the database
 my $sth = $dbh->prepare($query);
@@ -52,10 +52,10 @@ my $sth = $dbh->prepare($query);
 open (FILE, $infile);
 while (<FILE>) {
 chomp;
-my ($seqname, $pfamA_id, $Description, $pfamA_acc, $Best_domain, $Full_sequence) = split("\t");
+my ($seqname, $rfam_id, $Description, $rfam_acc, $Best_domain, $Full_sequence) = split("\t");
 
 # print "$seqname\t$pfamA_id\t$pfamA_acc\t$Best_domain\t$Full_sequence\n";
-$sth->execute($seqname,$pfamA_id,$pfamA_acc,$Best_domain,$Full_sequence) or die "Query failed: $!";
+$sth->execute($seqname,$rfam_id,$rfam_acc,$Best_domain,$Full_sequence) or die "Query failed: $!";
 
 } # fecha looping no arquivo e insere
 #

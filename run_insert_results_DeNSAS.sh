@@ -55,8 +55,7 @@ fi
 
 if [ $where = 4 ]; then
 echo "Inserting PFAM"
-echo "running /opt/perl/bin/perl ${DNSASDIR}/insert_pfam_results_createTXT.pl --prj $PRJ --infile $PFAMDIR/${PRJ}_PFAM_$PBS_ARRAYID.tsv"
-/opt/perl/bin/perl ${DNSASDIR}/insert_pfam_results_createTXT.pl --prj $PRJ --infile $PFAMDIR/${PRJ}_PFAM_$PBS_ARRAYID.tsv > $PFAMDIR/${PRJ}_PFAM_$PBS_ARRAYID.db
+/opt/perl/bin/perl ${DNSASDIR}/insert_pfam_results_directly.pl --prj $PRJ --infile $PFAMDIR/${PRJ}_PFAM_$PBS_ARRAYID.tsv
 fi
 
 #############
@@ -65,6 +64,5 @@ fi
 
 if [ $where = 5 ]; then
 echo "Inserting RFAM"
-echo "Running /opt/perl/bin/perl ${DNSASDIR}/insert_rfam_results_createTXT.pl -i $RFAMDIR/${PRJ}_RFAM_$PBS_ARRAYID.tsv --prj $PRJ"
-/opt/perl/bin/perl ${DNSASDIR}/insert_rfam_results_createTXT.pl -i $RFAMDIR/${PRJ}_RFAM_$PBS_ARRAYID.tsv --prj $PRJ > $RFAMDIR/${PRJ}_RFAM_$PBS_ARRAYID.db
+/opt/perl/bin/perl ${DNSASDIR}/insert_rfam_results_directly.pl -i $RFAMDIR/${PRJ}_RFAM_$PBS_ARRAYID.tsv --prj $PRJ
 fi

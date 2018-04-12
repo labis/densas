@@ -239,7 +239,7 @@ while (my $fstHEADER = <FILE>) {
     print $descFILE "\n"; #new line
     $seqNUM ++; #COUNT SEQS
     #print some statistics
-    print "Running at ",timing($seqNUM)," sequences per minute\n";
+    print "Running at ",timing($seqNUM)," sequences per minute\r";
 } #close while loop
 close(FILE);
 close $descFILE;

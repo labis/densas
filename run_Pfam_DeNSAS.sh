@@ -11,6 +11,7 @@ NP=$(wc -l $PBS_NODEFILE | awk '{print $1}')
 #FSTDIR= Comes from the prep_annotation.pl
 #PRJ= Comes from the prep_annotation.pl
 #DNSASDIR= Comes from the prep_annotation.pl
+#ABLAST= Comes from the prep_annotation.pl
 
 TMPDIR="/state/partition1/PFAM_${PRJ}_$PBS_ARRAYID"
 PEPDIR=$RUNDIR/PEP
@@ -65,19 +66,24 @@ qsub ${DNSASDIR}/run_insert_results_DeNSAS.sh -t $PBS_ARRAYID -N ${PRJ}_inPFAM -
 ###############################################
 #   STEP ONE:
 #   RUN TRANSDECODER AND FIND THE LONGEST ORFS
+#   IF RUNNING ATYPE=NUC
 ###############################################
 
 cd $TMPDIR
 cp $FSTDIR/${PRJ}_$PBS_ARRAYID.fasta ./
+if [ $ABLAST = "nuc" ]; then
 ~/programs/TransDecoder-2.0.1/TransDecoder.LongOrfs -t ${PRJ}_$PBS_ARRAYID.fasta -m 50
 ~/programs/TransDecoder-2.0.1/TransDecoder.Predict -t ${PRJ}_$PBS_ARRAYID.fasta
-
+runfile=${PRJ}_$PBS_ARRAYID.fasta.transdecoder_dir/longest_orfs.pep
+else
+runfile=${PRJ}_$PBS_ARRAYID.fasta
+fi
 ##############################################
 #   STEP TWO:
 #   RUN PFAM
 ##############################################
 
-~/programs/hmmer/binaries/hmmscan -o temp_${PRJ}_hmm --tblout ${PRJ}_${PBS_ARRAYID}_pfam.tblout --noali --cpu $NP /state/partition1/db/pfam/Pfam-A.hmm  ${PRJ}_$PBS_ARRAYID.fasta.transdecoder_dir/longest_orfs.pep
+~/programs/hmmer/binaries/hmmscan -o temp_${PRJ}_hmm --tblout ${PRJ}_${PBS_ARRAYID}_pfam.tblout --noali --cpu $NP /state/partition1/db/pfam/Pfam-A.hmm  $runfile
 perl ${DNSASDIR}/hmm_parser.pl ${PRJ}_${PBS_ARRAYID}_pfam.tblout > $PFAMDIR/${PRJ}_PFAM_$PBS_ARRAYID.tsv
 
 ##############################################
@@ -92,8 +98,9 @@ qsub ${DNSASDIR}/run_insert_results_DeNSAS.sh -t $PBS_ARRAYID -N ${PRJ}_inPFAM -
 #   STEP FOUR:
 #   CLEAN UP
 ##############################################
-
+if [ $ABLAST = "nuc" ]; then
 cp ${PRJ}_$PBS_ARRAYID.fasta.transdecoder_dir/longest_orfs.pep $PFAMDIR/${PRJ}_PFAM_$PBS_ARRAYID.pep
+fi
 zip -rm ${PRJ}_${PBS_ARRAYID}_pfam.tblout.zip ${PRJ}_${PBS_ARRAYID}_pfam.tblout
 # tar -zcvpf ${PRJ}_$PBS_ARRAYID.fasta_dir.tar.gz ${PRJ}_$PBS_ARRAYID.fasta_dir/ --remove-files
 mv $PFAMDIR/*.pep $PEPDIR/

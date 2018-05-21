@@ -31,6 +31,8 @@ my $infile = "";
 # my $PFAM_run = "run_Pfam_DeNSAS.sh";
 my $filename;
 my $fdb = 1;
+my $atype = "nuc"; #nuc=transcriptome pro=proteome
+my $ablast;
 # my $DNSASDIR = "/home/mmbrand/annotate/Runscripts/";
 
 GetOptions ('split=s' => \$split_seqs,
@@ -38,13 +40,14 @@ GetOptions ('split=s' => \$split_seqs,
             'prj=s' => \$PRJ,
             'infile=s' => \$infile,
             'overdb=s' =>\$fdb,
+            'atype=s' =>\$atype,
             );
 
 # ###################################            
 # # CHECK IF ALL VARIABLES ARE THERE
 # ###################################
 if ((!$split_seqs) || (!$rundir) || (!$PRJ) || (!$infile)) {
-print "Some required arguments are missing.\nYou must use this as follow:\n$0 --split [number of sequences/file] --rundir [/where/to/output/results/ ] --prj [ PROJECT ] --overdb [0|1] --infile [ FASTA FILE ]\n";
+print "Some required arguments are missing.\nYou must use this as follow:\n$0 --split [number of sequences/file] --rundir [/where/to/output/results/ ] --prj [ PROJECT ] --overdb [0|1] --atype [nuc|pro] --infile [ FASTA FILE ]\n";
 exit 1
 }
             
@@ -167,6 +170,7 @@ CREATE TABLE IF NOT EXISTS `$PRJ\_RFAM`(
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 ");
   $dbh->commit();
+
   
   ##############################
   # CLOSE IF TABLE DO NOT EXIST
@@ -174,9 +178,9 @@ CREATE TABLE IF NOT EXISTS `$PRJ\_RFAM`(
   
   } else {
   
-  ##############################
-  # BE NICE AND EXIT
-  ##############################
+  ###################################################
+  # BE NICE AND EXIT TEST IF FDB WAS BYPASSED OR NOT
+  ###################################################
 
 if ($fdb eq 1) {
     die "Sorry, the project name $PRJ was already choosen :(\nBut, no fear just choose another one ;)\n";
@@ -260,20 +264,30 @@ close(FASTAhdrfile);
 ###################
 #SEND TO EXECUTION
 ###################
-
-
+if ($atype eq "nuc") {
+$ablast = "blastx";
+} elsif ($atype eq "pro") {
+$ablast = "blastp";
+}
 print "Sending to the queue system\n";
-# print "qsub -t 1-${filenum} ${DNSASDIR}/$blast_run -N ${PRJ}_blast -d ./ -o $rundir/OUT/BLAST.out -v 'RUNDIR=$rundir, FSTDIR=$fastadir, DNSASDIR=$DNSASDIR, PRJ=$PRJ, where=2'\n";
-# print "qsub -t 1-${filenum} ${DNSASDIR}/$blast_run -N ${PRJ}_blast -d ./ -o $rundir/OUT/MEROPSout -v 'RUNDIR=$rundir, FSTDIR=$fastadir, DNSASDIR=$DNSASDIR, PRJ=$PRJ, where=4'\n";
-# print "qsub -t 1-${filenum} ${DNSASDIR}/$rfam_run -N ${PRJ}_rfam -d ./ -o $rundir/OUT/RFAM.out -v 'RUNDIR=$rundir, FSTDIR=$fastadir, DNSASDIR=$DNSASDIR, PRJ=$PRJ'\n";
-# print "qsub -t 1-${filenum} ${DNSASDIR}/$PFAM_run -N ${PRJ}_pfam -d ./ -o $rundir/OUT/PFAM.out -v 'RUNDIR=$rundir, FSTDIR=$fastadir, DNSASDIR=$DNSASDIR, PRJ=$PRJ'\n";
-my $result_blast = system("qsub -t 1-${filenum} ${DNSASDIR}/$blast_run -N ${PRJ}_blast -d ./ -o $rundir/OUT/BLAST.out -v 'RUNDIR=$rundir, FSTDIR=$fastadir, DNSASDIR=$DNSASDIR, PRJ=$PRJ, where=2'");
-my $result_MEROPS = system("qsub -t 1-${filenum} ${DNSASDIR}/$blast_run -N ${PRJ}_blast -d ./ -o $rundir/OUT/MEROPSout -v 'RUNDIR=$rundir, FSTDIR=$fastadir, DNSASDIR=$DNSASDIR, PRJ=$PRJ, where=4'");
+my $result_blast = system("qsub -t 1-${filenum} ${DNSASDIR}/$blast_run -N ${PRJ}_blast -d ./ -o $rundir/OUT/BLAST.out -v 'RUNDIR=$rundir, FSTDIR=$fastadir, DNSASDIR=$DNSASDIR, PRJ=$PRJ, ABLAST=$ablast, where=2'");
+print "blast = $?\n";
+my $result_MEROPS = system("qsub -t 1-${filenum} ${DNSASDIR}/$blast_run -N ${PRJ}_blast -d ./ -o $rundir/OUT/MEROPSout -v 'RUNDIR=$rundir, FSTDIR=$fastadir, DNSASDIR=$DNSASDIR, PRJ=$PRJ, ABLAST=$ablast, where=4'");
+print "MEROPS = $?\n";
+my $result_PFAM = system("qsub -t 1-${filenum} ${DNSASDIR}/$PFAM_run -N ${PRJ}_pfam -d ./ -o $rundir/OUT/PFAM.out -v 'RUNDIR=$rundir, FSTDIR=$fastadir, DNSASDIR=$DNSASDIR, PRJ=$PRJ, ABLAST=$ablast'");
+print "PFAM = $?\n";
+if ($atype eq "nuc") {
 my $result_RFAM = system("qsub -t 1-${filenum} ${DNSASDIR}/$rfam_run -N ${PRJ}_rfam -d ./ -o $rundir/OUT/RFAM.out -v 'RUNDIR=$rundir, FSTDIR=$fastadir, DNSASDIR=$DNSASDIR, PRJ=$PRJ'");
-my $result_PFAM = system("qsub -t 1-${filenum} ${DNSASDIR}/$PFAM_run -N ${PRJ}_pfam -d ./ -o $rundir/OUT/PFAM.out -v 'RUNDIR=$rundir, FSTDIR=$fastadir, DNSASDIR=$DNSASDIR, PRJ=$PRJ'");
-print "Blast is running under $result_blast and RFAM under $result_RFAM";
+}
+
+# print "Blast is running under $result_blast and RFAM under $result_RFAM";
 # 
 print "Done\n Have a nice day \;)\n";
+
+###############################
+#CREATE FILE FOR DATABASE INPUT
+###############################
+
 my $RUNDIR = $rundir;
 my $BLSTDIR="$RUNDIR/blastXML";
 my $MRPSDIR="$RUNDIR/MEROPS";
@@ -281,14 +295,12 @@ my $PFAMDIR="$RUNDIR/PFAM";
 my $RFAMDIR="$RUNDIR/RFAM";
 my $FSTDIR="$RUNDIR/fasta";
 
-###############################
-#CREATE FILE FOR DATABASE INPUT
-###############################
-
 open(my $fh2, '>', "$rundir/manual2.txt");
 print $fh2 "Meu primeiro relatório gerado pelo Perl\n";
 print $fh2 "qsub ${DNSASDIR}/run_insert_results_DeNSAS.sh -t 1-${filenum}%3 -N ${PRJ}_inDIAM -d ./ -o $RUNDIR/OUT/Insert_BLASTDiamon.out -v 'RUNDIR=$RUNDIR, DNSASDIR=$DNSASDIR, PRJ=$PRJ, where=2'\n";
 print $fh2 "qsub ${DNSASDIR}/run_insert_results_DeNSAS.sh -t 1-${filenum}%3 -N ${PRJ}_inMRPS -d ./ -o $RUNDIR/OUT/Insert_MEROPSDiamon.out -v 'RUNDIR=$RUNDIR, DNSASDIR=$DNSASDIR, PRJ=$PRJ, where=3'\n";
 print $fh2 "qsub ${DNSASDIR}/run_insert_results_DeNSAS.sh -t 1-${filenum}%3 -N ${PRJ}_inPFAM -d ./ -o $RUNDIR/OUT/Insert_PFAM.out -v 'RUNDIR=$RUNDIR, DNSASDIR=$DNSASDIR, PRJ=$PRJ, where=4'\n";
+if ($atype eq "nuc") {
 print $fh2 "qsub ${DNSASDIR}/run_insert_results_DeNSAS.sh -t 1-${filenum}%3 -N ${PRJ}_inRFAM -d ./ -o $RUNDIR/OUT/Insert_RFAM.out -v 'RUNDIR=$RUNDIR, DNSASDIR=$DNSASDIR, PRJ=$PRJ, where=5'\n";
+}
 close $fh2;

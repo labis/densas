@@ -19,7 +19,7 @@ GetOptions ('prj=s' => \$PRJ,
 # ###################################            
 # # CHECK IF ALL VARIABLES ARE THERE
 # ###################################
-if ((!$PRJ) || (!$name) || (!$infile)) {
+if ((!$PRJ) || (!$name) || (!$file)) {
 print "Some required arguments are missing.\nYou must use this as follow:\n$0 --prj [ PROJECT ] --infile [ FASTA FILE ] --name [ FASTA HEADER NAME ] --format [ fasta|fastq ]\n";
 exit 1
 }
@@ -43,9 +43,13 @@ my $inseq = Bio::SeqIO->new(
 # Now that we have a seq stream,
 # we need to tell it to give us a $seq.
 # We do this using the 'next_seq' method of SeqIO.
- 
+# Deal with output filenames
+
+my ($filename, $exte) = split /./, $file;
+open(my $fh, '>', $filename."_rename.fasta"); # Open file to write
 while (my $seq = $inseq->next_seq) {
-    print ">",$PRJ,"_",$name,":",$SEQNUM,"\n";
-    print $seq->seq,"\n";
+    print $fh ">",$PRJ,"_",$name,":",$SEQNUM,"\n";
+    print $fh $seq->seq,"\n";
     $SEQNUM ++;
 }
+close $fh; # close file to write

@@ -10,18 +10,19 @@ use Getopt::Long;
  
 # Bring in the file and format, or die with a nice
 # usage statement if one or both arguments are missing.
-my $usage  = "getaccs.pl file format PRJ\n";
-my $file   = shift or die $usage;
-my $format = shift or die $usage;
-my $PRJ = shift or die $usage;
-
 GetOptions ('prj=s' => \$PRJ,
             'infile=s' => \$file,
             'format=s' =>\$format,
             'name=s' =>\$name,
             );
 
- 
+# ###################################            
+# # CHECK IF ALL VARIABLES ARE THERE
+# ###################################
+if ((!$PRJ) || (!$name) || (!$infile)) {
+print "Some required arguments are missing.\nYou must use this as follow:\n$0 --prj [ PROJECT ] --infile [ FASTA FILE ] --name [ FASTA HEADER NAME ] --format [ fasta|fastq ]\n";
+exit 1
+}
  # Now create a new SeqIO object to bring in the input
 # file. The new method takes arguments in the format
 # key => value, key => value. The basic keys that it

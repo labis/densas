@@ -8,8 +8,8 @@ use Benchmark qw(:hireswallclock);
 my $starttime = Benchmark->new;
 my $finishtime;
 my $timespent;
-my $num_of_threads = 16;
-my $contarTotal = 32000000000;
+my $num_of_threads = 8;
+my $contarTotal = 3200000000;
 my $piece = ceil($contarTotal / $num_of_threads);
 # cria o número de threads para rodar
 my @threads = initThreads();

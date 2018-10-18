@@ -7,6 +7,7 @@ use Getopt::Long;
 use Cwd qw();
 use File::Basename;
 use POSIX;
+use threads;
 
 ####################
 #GET THE CONFIG FILE
@@ -15,19 +16,32 @@ use POSIX;
 my $name = basename($0);
 my ($real_path) = Cwd::abs_path($0)  =~ m/(.*)$name/i;
 require "$real_path/config.pl";
+# Define blast indentity
 my $pidentBL = 40;
+# Define blast e-Value
 my $evalueBL = 0.00000000001;
+# Define the number of threads
+my $NProc = 4;
 
 my ($rundir,$ANNOT_file,$PRJ);
     GetOptions ('rundir=s' => \$rundir,
                 'outfile=s' => \$ANNOT_file,
                 'prj=s' => \$PRJ,
                 'idt=s' => \$pidentBL,
-                'evl=s' => \$evalueBL,);
-    if ((!$PRJ) || (!$rundir) || (!$ANNOT_file) || (!$pidentBL) || (!$evalueBL)) {
-    print "Some required arguments are missing.\nYou must use this as follow:\n$0 --prj PROJECT --rundir /PATH/TO/THE/RUNDIR/ --outfile ANNOT_file --idt [ BLAST SEQUENCE SIMILARITY ] --evl [ BLAST EVALUE ]\n";
+                'evl=s' => \$evalueBL,
+                'nproc=s' => \$NProc,);
+    if ((!$PRJ) || (!$rundir) || (!$ANNOT_file) || (!$pidentBL) || (!$evalueBL) || (!$NProc)) {
+    print "Some required arguments are missing.\nYou must use this as follow:\n$0 --prj PROJECT --rundir /PATH/TO/THE/RUNDIR/ --outfile ANNOT_file --idt [ BLAST SEQUENCE SIMILARITY ] --evl [ BLAST EVALUE ] --nproc [NUMBER OF THREADS]\n";
     exit 1
 }
+
+################################
+#PREPARE MULTITHREADING
+################################
+
+# use the initThreads subroutine to create an array of threads.
+my @threads = initThreads();
+
 
 ################################
 #TEST IF THE HEADER FILE EXISTS
@@ -47,6 +61,18 @@ my $dbh = DBI->connect("dbi:mysql:$database:$host:$port", "$user", "$pw",
                     { RaiseError => 1, AutoCommit => 0 });
 
 #################################SUB routines
+
+# Subroutine to initiate threading
+sub initThreads{
+        # An array to place our threads in
+	my @initThreads;
+	for(my $i = 1;$i<=$NProc;$i++){
+		push(@initThreads,$i);
+	}
+	return @initThreads;
+}
+# end initiate threading
+
 sub blastRES {
   my ($seqNAME_blst) = @_; # Get the sequence name
   my $noBLSTRES = ();
@@ -234,6 +260,23 @@ my @timing; #create a timing array for debug
 my $i = 0;
 my $o = 0;
 open FILE, "$rundir/$PRJ\_header.txt" or die $!; # open Header file to search for GOs
+
+# Loop text with MULTITHREADING
+foreach(@threads){
+                # Tell each thread to perform our 'doAnnotation()' subroutine.
+		$_ = threads->create(\&doAnnotation);
+}
+
+# This tells the main program to keep running until all threads have finished.
+foreach(@threads){
+	$_->join();
+}
+# End looping with MULTITHREADING
+
+sub doAnnotation{
+	# Get the thread id. Allows each thread to be identified.
+	my $id = threads->tid();
+#open file 
 while (my $fstHEADER = <FILE>) {
 $fstHEADER =~ s/\n//g;
         #Go to blast results, check for best hits and retrive UNIPROT
@@ -254,6 +297,11 @@ $fstHEADER =~ s/\n//g;
            $o ++;
 #         } #close if Get the Header
   } #Close While FILE
+# thread is done and exit the thread.
+	print "Thread $id has finished!\n";
+	threads->exit();
+} # close doAnnotation
+
 print "Step 1 complete on ".floor(timing())." minutes\n Let´s continue.\nStep 2: Generating GO annotation and saving to file\n";
 
 ################################# End LOOP file

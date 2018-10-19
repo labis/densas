@@ -15,20 +15,24 @@ use POSIX;
 my $name = basename($0);
 my ($real_path) = Cwd::abs_path($0)  =~ m/(.*)$name/i;
 require "$real_path/config.pl";
+# Define blast indentity
 my $pidentBL = 40;
+# Define blast e-Value
 my $evalueBL = 0.00000000001;
+# Define the number of threads
+my $NProc = 4;
 
 my ($rundir,$ANNOT_file,$PRJ);
     GetOptions ('rundir=s' => \$rundir,
                 'outfile=s' => \$ANNOT_file,
                 'prj=s' => \$PRJ,
                 'idt=s' => \$pidentBL,
-                'evl=s' => \$evalueBL,);
+                'evl=s' => \$evalueBL,
+                'nproc=s' => \$NProc,);
     if ((!$PRJ) || (!$rundir) || (!$ANNOT_file) || (!$pidentBL) || (!$evalueBL)) {
-    print "Some required arguments are missing.\nYou must use this as follow:\n$0 --prj PROJECT --rundir /PATH/TO/THE/RUNDIR/ --outfile ANNOT_file --idt [ BLAST SEQUENCE SIMILARITY ] --evl [ BLAST EVALUE ]\n";
+    print "Some required arguments are missing.\nYou must use this as follow:\n$0 --prj PROJECT --rundir /PATH/TO/THE/RUNDIR/ --outfile ANNOT_file --idt [ BLAST SEQUENCE SIMILARITY ] --evl [ BLAST EVALUE ] \n";
     exit 1
 }
-
 ################################
 #TEST IF THE HEADER FILE EXISTS
 ################################

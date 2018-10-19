@@ -8,7 +8,7 @@ use Cwd qw();
 use File::Basename;
 use POSIX;
 use threads;
-
+use DBIx::Threaded
 ####################
 #GET THE CONFIG FILE
 ####################
@@ -77,6 +77,10 @@ sub blastRES {
   my ($seqNAME_blst) = @_; # Get the sequence name
   my $noBLSTRES = ();
   my @ALL_GO = ();
+  #Conects to the MySQL database
+my $dbh = DBI->connect("dbi:mysql:$database:$host:$port", "$user", "$pw",
+                    { RaiseError => 1, AutoCommit => 0 });
+                    
   #Search the Blast results for seqName
   my $blastRESDB = $dbh->selectall_arrayref("
 SELECT
@@ -261,7 +265,8 @@ my $i = 0;
 my $o = 0;
 open FILE, "$rundir/$PRJ\_header.txt" or die $!; # open Header file to search for GOs
 
-# Loop text with MULTITHREADING
+################################### Loop text with MULTITHREADING
+
 foreach(@threads){
                 # Tell each thread to perform our 'doAnnotation()' subroutine.
 		$_ = threads->create(\&doAnnotation);
@@ -276,7 +281,8 @@ foreach(@threads){
 sub doAnnotation{
 	# Get the thread id. Allows each thread to be identified.
 	my $id = threads->tid();
-#open file 
+
+	#open file 
 while (my $fstHEADER = <FILE>) {
 $fstHEADER =~ s/\n//g;
         #Go to blast results, check for best hits and retrive UNIPROT

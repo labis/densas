@@ -11,7 +11,7 @@ our ($platform, $database, $host, $port, $user, $pw, $split_seqs, $rundir, $PRJ,
 
 $platform = "mysql";
 $database = "densas";
-$host = "143.106.4.232";
+$host = "143.106.4.87";
 #$host = "localhost";
 $port = "3306";
 $user = "annotate";

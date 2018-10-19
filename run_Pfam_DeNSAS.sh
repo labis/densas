@@ -72,8 +72,8 @@ qsub ${DNSASDIR}/run_insert_results_DeNSAS.sh -t $PBS_ARRAYID -N ${PRJ}_inPFAM -
 cd $TMPDIR
 cp $FSTDIR/${PRJ}_$PBS_ARRAYID.fasta ./
 if [ $ABLAST = "nuc" ]; then
-~/programs/TransDecoder-2.0.1/TransDecoder.LongOrfs -t ${PRJ}_$PBS_ARRAYID.fasta -m 50
-~/programs/TransDecoder-2.0.1/TransDecoder.Predict -t ${PRJ}_$PBS_ARRAYID.fasta
+/share/programs/TransDecoder-2.0.1/TransDecoder.LongOrfs -t ${PRJ}_$PBS_ARRAYID.fasta -m 50
+/share/programs/TransDecoder-2.0.1/TransDecoder.Predict -t ${PRJ}_$PBS_ARRAYID.fasta
 runfile=${PRJ}_$PBS_ARRAYID.fasta.transdecoder_dir/longest_orfs.pep
 else
 runfile=${PRJ}_$PBS_ARRAYID.fasta

@@ -7,9 +7,13 @@ ftp://ftp.pir.georgetown.edu/databases/idmapping/idmapping.tb.gz
 ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/database_files/pfamA.innodb.sql.gz
 ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/database_files/pfamA.txt.gz
 http://geneontology.org/external2go/pfam2go
-http://geneontology.org/external2go/rfam2go
+http://www-legacy.geneontology.org/external2go/rfam2go
 ftp://ftp.ebi.ac.uk/pub/databases/Rfam/CURRENT/database_files/family.sql
 ftp://ftp.ebi.ac.uk/pub/databases/Rfam/CURRENT/database_files/family.txt.gz
+ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/gi_taxid_nucl.dmp.gz
+ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/gi_taxid_prot.dmp.gz
+ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/accession2taxid/prot.accession2taxid.gz
+ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/accession2taxid/nucl_gb.accession2taxid.gz
 ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/gi_taxid_prot.zip
 ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/gi_taxid_nucl.zip
 ftp://ftp.ebi.ac.uk/pub/databases/merops/current_release/database_files/domain.sql

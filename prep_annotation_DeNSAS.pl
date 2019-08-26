@@ -18,7 +18,7 @@ require "$real_path/config.pl";
 #Get all the options
 ####################
 
-our ($platform, $database, $host, $port, $user, $pw, $split_seqs, $rundir, $PRJ, $blast_run, $rfam_run, $PFAM_run, $DNSASDIR);
+our ($platform, $database, $host, $port, $user, $pw, $split_seqs, $rundir, $PRJ, $blast_run, $rfam_run, $PFAM_run, $DNSASDIR, $ncpus_blast, $ncpus_insert, $ncpus_hmm, $qname, $soft_aria, $soft_transdecoder, $soft_hmmscan, $soft_diamond, $soft_pfam_db, $soft_rfam_db, $soft_diamond_refseq, $soft_diamond_merops);
 # my $split_seqs=1000;
 my $count=0;
 my $filenum=0;
@@ -185,7 +185,7 @@ CREATE TABLE IF NOT EXISTS `$PRJ\_RFAM`(
 if ($fdb eq 1) {
     die "Sorry, the project name $PRJ was already choosen :(\nBut, no fear just choose another one ;)\n";
     } else {
-        print "The project name $PRJ exists, but, -fdb was set to 0, so, let's continue";
+        print "The project name $PRJ exists, but, -fdb was set to 0, so, let's continue\nRemember that all data on the server database will be lost!\n";
         }
 }
 
@@ -261,23 +261,53 @@ while(<FASTAhdr>) {
 }
 close(FASTAhdrfile);
 
-###################
-#SEND TO EXECUTION
-###################
+##########################
+#SET THE TYPE OF SEQUENCES
+##########################
+
 if ($atype eq "nuc") {
 $ablast = "blastx";
 } elsif ($atype eq "pro") {
 $ablast = "blastp";
 }
-print "Sending to the queue system\n";
-my $result_blast = system("qsub -t 1-${filenum} ${DNSASDIR}/$blast_run -N ${PRJ}_blast -d ./ -o $rundir/OUT/BLAST.out -v 'RUNDIR=$rundir, FSTDIR=$fastadir, DNSASDIR=$DNSASDIR, PRJ=$PRJ, ABLAST=$ablast, where=2'");
+
+###################
+#SEND TO EXECUTION
+###################
+
+print "Sending JOBS to the queue system\n";
+
+###############
+#DIAMOND REFSEQ
+###############
+
+print "There goes all similarities\n FIRING BLAST!\n";
+my $result_blast = system("qsub -t 1-${filenum} -N ${PRJ}_blast -q $qname -cwd -o $rundir/OUT/${PRJ}_BLAST.out -e $rundir/OUT/${PRJ}_BLAST.err -pe smp $ncpus_blast -v RUNDIR=$rundir,FSTDIR=$fastadir,DNSASDIR=$DNSASDIR,PRJ=$PRJ,ABLAST=$ablast,soft_diamond=$soft_diamond,soft_diamond_refseq=$soft_diamond_refseq,ncpus_insert=$ncpus_insert,where=2 ${DNSASDIR}/$blast_run");
 print "blast = $?\n";
-my $result_MEROPS = system("qsub -t 1-${filenum} ${DNSASDIR}/$blast_run -N ${PRJ}_blast -d ./ -o $rundir/OUT/MEROPSout -v 'RUNDIR=$rundir, FSTDIR=$fastadir, DNSASDIR=$DNSASDIR, PRJ=$PRJ, ABLAST=$ablast, where=4'");
+
+#############
+#BLAST MEROPS
+#############
+
+print "FIRING MEROPS!\n";
+my $result_MEROPS = system("qsub -t 1-${filenum} -N ${PRJ}_MEROPS -q $qname -cwd -o $rundir/OUT/${PRJ}_MEROPS.out -e $rundir/OUT/${PRJ}_MEROPS.err -pe smp $ncpus_blast -v RUNDIR=$rundir,FSTDIR=$fastadir,DNSASDIR=$DNSASDIR,PRJ=$PRJ,ABLAST=$ablast,soft_diamond=$soft_diamond,soft_diamond_merops=$soft_diamond_merops,ncpus_insert=$ncpus_insert,where=4 ${DNSASDIR}/$blast_run");
 print "MEROPS = $?\n";
-my $result_PFAM = system("qsub -t 1-${filenum} ${DNSASDIR}/$PFAM_run -N ${PRJ}_pfam -d ./ -o $rundir/OUT/PFAM.out -v 'RUNDIR=$rundir, FSTDIR=$fastadir, DNSASDIR=$DNSASDIR, PRJ=$PRJ, ABLAST=$ablast'");
+
+###########
+#HMMER PFAM
+###########
+
+print "FIRING PFAM!\n";
+my $result_PFAM = system("qsub -t 1-${filenum} -N ${PRJ}_pfam -q $qname -cwd -o $rundir/OUT/PFAM.out -e $rundir/OUT/PFAM_.err -pe smp $ncpus_blast -v RUNDIR=$rundir,FSTDIR=$fastadir,DNSASDIR=$DNSASDIR,PRJ=$PRJ,ABLAST=$ablast,ncpus_insert=$ncpus_insert,qname=$qname,soft_transdecoder=$soft_transdecoder,soft_hmmscan=$soft_hmmscan,soft_pfam_db=$soft_pfam_db ${DNSASDIR}/$PFAM_run");
 print "PFAM = $?\n";
+
+###########
+#HMMER RFAM
+###########
+
+print "FIRING RFAM!\n";
 if ($atype eq "nuc") {
-my $result_RFAM = system("qsub -t 1-${filenum} ${DNSASDIR}/$rfam_run -N ${PRJ}_rfam -d ./ -o $rundir/OUT/RFAM.out -v 'RUNDIR=$rundir, FSTDIR=$fastadir, DNSASDIR=$DNSASDIR, PRJ=$PRJ'");
+my $result_RFAM = system("qsub -t 1-${filenum} -N ${PRJ}_rfam -q $qname -cwd -o $rundir/OUT/RFAM.out -e $rundir/OUT/RFAM.err -pe smp $ncpus_blast -v RUNDIR=$rundir,FSTDIR=$fastadir,DNSASDIR=$DNSASDIR,PRJ=$PRJ,ABLAST=$ablast,ncpus_insert=$ncpus_insert,qname=$qname,soft_transdecoder=$soft_transdecoder,soft_hmmscan=$soft_hmmscan,soft_rfam_db=$soft_rfam_db ${DNSASDIR}/$rfam_run");
 }
 
 # print "Blast is running under $result_blast and RFAM under $result_RFAM";

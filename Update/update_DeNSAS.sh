@@ -5,7 +5,7 @@ DOWNLDATA="/home/mmbrand/Downloads/DeNSAS"
 ASSDBDIR="${DOWNLDATA}/assocdb/"
 DBSERVER="143.106.4.87"
 DBNAME="densas"
-DBUSER="densas"
+DBUSER="annotate"
 DBPASS="b10ine0!"
 DensasDIR="/home/mmbrand/DeNSAS"
 #Deal with all directories

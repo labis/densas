@@ -1,25 +1,13 @@
 #!/bin/bash
-#PBS -m abe
-#PBS -l nodes=1:ppn=12
-#PBS -l walltime=350:00:00
-#PBS -q default
-#PBS -j oe
 
-#RUNDIR= Comes from the prep_annotation.pl
-#FSTDIR= Comes from the prep_annotation.pl
-#PRJ= Comes from the prep_annotation.pl
-#where= Comes from the prep_annotation.pl
-#DNSASDIR= Comes from the prep_annotation.pl
-#ABLAST= Comes from the prep_annotation.pl
-
-TMPDIR="/state/partition1/BLAST_${PRJ}_$PBS_ARRAYID"
+TMPDIR="/state/partition1/BLAST_${PRJ}_$SGE_TASK_ID"
 BLSTDIR="$RUNDIR/blastXML"
 MRPSDIR="$RUNDIR/MEROPS"
-NP=$(wc -l $PBS_NODEFILE | awk '{print $1}')
+NP=$NSLOTS
 MaxSEQ=15
 Evalue=0.00000000001
 
-export BLASTDB=/state/partition1/db/blastdb/
+export BLASTDB=/state/partition1/DBs/blastdb
 
 #If not present, create the Map directory
 
@@ -42,7 +30,7 @@ if [ ! -d "$TMPDIR" ]; then
 fi
 
 #NP=$(($NP-4))
-cp $FSTDIR/${PRJ}_$PBS_ARRAYID.fasta $TMPDIR
+cp $FSTDIR/${PRJ}_$SGE_TASK_ID.fasta $TMPDIR
 # NP=$(($NP/2))
 
 #############
@@ -52,8 +40,8 @@ cp $FSTDIR/${PRJ}_$PBS_ARRAYID.fasta $TMPDIR
 
 if [ $where = 1 ]; then
 echo "running blastx using refseq_protein database"
-~/programs/blast/blastx -query $TMPDIR/${PRJ}_$PBS_ARRAYID.fasta -db /state/partition1/db/blastdb/nr -out $BLSTDIR/${PRJ}_blastx_$PBS_ARRAYID.tsv -outfmt 6 -num_threads $NP -max_target_seqs $MaxSEQ -evalue $Evalue
-qsub ${DNSASDIR}/run_insert_results_DeNSAS.sh -t $PBS_ARRAYID -N ${PRJ}_inBLST -d ./ -o $RUNDIR/OUT/In_BLAST_$PBS_ARRAYID.out -v "RUNDIR=$RUNDIR, DNSASDIR=$DNSASDIR, PRJ=$PRJ, where=1"
+~/programs/blast/blastx -query $TMPDIR/${PRJ}_$SGE_TASK_ID.fasta -db /state/partition1/DBs/blastdb/nr -out $BLSTDIR/${PRJ}_blastx_$SGE_TASK_ID.tsv -outfmt 6 -num_threads $NP -max_target_seqs $MaxSEQ -evalue $Evalue
+qsub ${DNSASDIR}/run_insert_results_DeNSAS.sh -t $SGE_TASK_ID -N ${PRJ}_inBLST -d ./ -o $RUNDIR/OUT/In_BLAST_$SGE_TASK_ID.out -v RUNDIR=$RUNDIR,DNSASDIR=$DNSASDIR,PRJ=$PRJ,where=1
 fi
 
 #############
@@ -62,9 +50,10 @@ fi
 
 if [ $where = 2 ]; then
 echo "running DIAMOND using refseq_protein database for DIAMOND"
-/share/programs/downloads/diamond $ABLAST --threads $NP -d /state/partition1/db/blastdb/refseq_DIAMOND -q $TMPDIR/${PRJ}_$PBS_ARRAYID.fasta -a $BLSTDIR/${PRJ}_${PBS_ARRAYID}_Diamond -t $TMPDIR -k $MaxSEQ -c 5 -e $Evalue
-/share/programs/downloads/diamond view -a $BLSTDIR/${PRJ}_${PBS_ARRAYID}_Diamond.daa -o $BLSTDIR/${PRJ}_blastx_$PBS_ARRAYID.tsv -f tab
-qsub ${DNSASDIR}/run_insert_results_DeNSAS.sh -t $PBS_ARRAYID -N ${PRJ}_inDIA -d ./ -o $RUNDIR/OUT/In_Diamon_$PBS_ARRAYID.out -v "RUNDIR=$RUNDIR, DNSASDIR=$DNSASDIR, PRJ=$PRJ, where=2"
+$soft_diamond $ABLAST --threads $NP -d $soft_diamond_refseq -q $TMPDIR/${PRJ}_$SGE_TASK_ID.fasta -a $BLSTDIR/${PRJ}_${SGE_TASK_ID}_Diamond -t $TMPDIR -k $MaxSEQ -c 5 -e $Evalue
+$soft_diamond view -a $BLSTDIR/${PRJ}_${SGE_TASK_ID}_Diamond.daa -o $BLSTDIR/${PRJ}_blastx_$SGE_TASK_ID.tsv -f tab
+echo "Sending to DeNSAS_db"
+echo "qsub ${DNSASDIR}/run_insert_results_DeNSAS.sh -t $SGE_TASK_ID -N ${PRJ}_inDIA -q $qname -d -o $RUNDIR/OUT/In_Diamon_$SGE_TASK_ID.out -pe smp $ncpus_insert -v RUNDIR=$RUNDIR,DNSASDIR=$DNSASDIR,PRJ=$PRJ,where=2"
 fi
 
 #############
@@ -74,8 +63,8 @@ fi
 if [ $where = 3 ]; then
 echo "running blastx using MEROPS database"
 NP2=$(($NP/2)) # run half threads
-~/programs/blast/blastx -query $TMPDIR/${PRJ}_$PBS_ARRAYID.fasta -db /state/partition1/db/blastdb/MEROPS -out $MRPSDIR/${PRJ}_Blstx_$PBS_ARRAYID.tsv -outfmt 6 -num_threads $NP -max_target_seqs $MaxSEQ -evalue $Evalue
-qsub ${DNSASDIR}/run_insert_results_DeNSAS.sh -t $PBS_ARRAYID -N ${PRJ}_inMRPS -d ./ -o $RUNDIR/OUT/In_MEROPS_$PBS_ARRAYID.out -v "RUNDIR=$RUNDIR, DNSASDIR=$DNSASDIR, PRJ=$PRJ, where=3"
+~/programs/blast/blastx -query $TMPDIR/${PRJ}_$SGE_TASK_ID.fasta -db /state/partition1/DBs/blastdbMEROPS -out $MRPSDIR/${PRJ}_Blstx_$SGE_TASK_ID.tsv -outfmt 6 -num_threads $NP -max_target_seqs $MaxSEQ -evalue $Evalue
+qsub ${DNSASDIR}/run_insert_results_DeNSAS.sh -t $SGE_TASK_ID -N ${PRJ}_inMRPS -d -o $RUNDIR/OUT/In_MEROPS_$SGE_TASK_ID.out -v RUNDIR=$RUNDIR, DNSASDIR=$DNSASDIR, PRJ=$PRJ, where=3
 fi
 
 #############
@@ -83,10 +72,10 @@ fi
 #############
 
 if [ $where = 4 ]; then
-echo "running diamond using MEROPS database"
-/share/programs/downloads/diamond $ABLAST --threads $NP -d /state/partition1/db/blastdb/MEROPS_diamond -q $TMPDIR/${PRJ}_$PBS_ARRAYID.fasta -a $MRPSDIR/${PRJ}_${PBS_ARRAYID}_Diamond -t $TMPDIR -k $MaxSEQ -c 5 -e $Evalue
-/share/programs/downloads/diamond view -a $MRPSDIR/${PRJ}_${PBS_ARRAYID}_Diamond.daa -o $MRPSDIR/${PRJ}_Blastx_$PBS_ARRAYID.tsv -f tab
-qsub ${DNSASDIR}/run_insert_results_DeNSAS.sh -t $PBS_ARRAYID -N ${PRJ}_inMRPS -d ./ -o $RUNDIR/OUT/In_MERDiamon_$PBS_ARRAYID.out -v "RUNDIR=$RUNDIR, DNSASDIR=$DNSASDIR, PRJ=$PRJ, where=3"
+echo "date\nrunning diamond using MEROPS database"
+$soft_diamond $ABLAST --threads $NP -d $soft_diamond_merops -q $TMPDIR/${PRJ}_$SGE_TASK_ID.fasta -a $MRPSDIR/${PRJ}_${SGE_TASK_ID}_Diamond -t $TMPDIR -k $MaxSEQ -c 5 -e $Evalue
+$soft_diamond view -a $MRPSDIR/${PRJ}_${SGE_TASK_ID}_Diamond.daa -o $MRPSDIR/${PRJ}_Blastx_$SGE_TASK_ID.tsv -f tab
+echo "qsub ${DNSASDIR}/run_insert_results_DeNSAS.sh -t $SGE_TASK_ID -N ${PRJ}_inMRPS -q $qname -d -o $RUNDIR/OUT/In_MERDiamon_$SGE_TASK_ID.out -pe smp $ncpus_insert -v RUNDIR=$RUNDIR, DNSASDIR=$DNSASDIR, PRJ=$PRJ, where=3"
 fi
 
 cd $RUNDIR

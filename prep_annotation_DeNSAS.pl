@@ -18,7 +18,7 @@ require "$real_path/config.pl";
 #Get all the options
 ####################
 
-our ($platform, $database, $host, $port, $user, $pw, $split_seqs, $rundir, $PRJ, $blast_run, $rfam_run, $PFAM_run, $DNSASDIR, $ncpus_blast, $ncpus_insert, $ncpus_hmm, $qname, $soft_aria, $soft_transdecoder, $soft_hmmscan, $soft_diamond, $soft_pfam_db, $soft_rfam_db, $soft_diamond_refseq, $soft_diamond_merops);
+our ($platform, $database, $host, $port, $user, $pw, $split_seqs, $rundir, $PRJ, $blast_run, $rfam_run, $PFAM_run, $DNSASDIR, $IPRS_run, $ncpus_blast, $ncpus_insert, $ncpus_hmm, $qname, $soft_aria, $soft_transdecoder, $soft_hmmscan, $soft_diamond, $soft_pfam_db, $soft_rfam_db, $soft_diamond_refseq, $soft_diamond_merops, $soft_interproscan);
 # my $split_seqs=1000;
 my $count=0;
 my $filenum=0;
@@ -312,6 +312,15 @@ my $result_RFAM = system("qsub -t 1-${filenum} -N ${PRJ}_rfam -q $qname -cwd -o 
 
 # print "Blast is running under $result_blast and RFAM under $result_RFAM";
 # 
+
+#############
+#INTERPROSCAN
+#############
+
+print "FIRING Interproscan!\n";
+my $result_IPRS = system("qsub -t 1-${filenum} -N ${PRJ}_IPRS -q $qname -cwd -o $rundir/OUT/IPRS.out -e $rundir/OUT/IPRS_.err -pe smp $ncpus_blast -v RUNDIR=$rundir,FSTDIR=$fastadir,DNSASDIR=$DNSASDIR,PRJ=$PRJ,ABLAST=$ablast,ncpus_insert=$ncpus_insert,qname=$qname,soft_transdecoder=$soft_transdecoder,soft_interproscan=$soft_interproscan ${DNSASDIR}/$IPRS_run");
+print "PFAM = $?\n";
+
 print "Done\n Have a nice day \;)\n";
 
 ###############################

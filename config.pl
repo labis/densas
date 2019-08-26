@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-our ($platform, $database, $host, $port, $user, $pw, $split_seqs, $rundir, $PRJ, $blast_run, $rfam_run, $PFAM_run, $DNSASDIR, $ncpus_blast, $ncpus_insert, $ncpus_hmm, $qname, $soft_aria, $soft_transdecoder, $soft_hmmscan, $soft_diamond, $soft_pfam_db, $soft_rfam_db, $soft_diamond_refseq, $soft_diamond_merops);
+our ($platform, $database, $host, $port, $user, $pw, $split_seqs, $rundir, $PRJ, $blast_run, $rfam_run, $PFAM_run, $DNSASDIR, $IPRS_run, $ncpus_blast, $ncpus_insert, $ncpus_hmm, $qname, $soft_aria, $soft_transdecoder, $soft_hmmscan, $soft_diamond, $soft_pfam_db, $soft_rfam_db, $soft_diamond_refseq, $soft_diamond_merops, $soft_interproscan);
 
 #####################
 #CONFIG DB VARIABLES
@@ -28,6 +28,7 @@ $blast_run = "run_blast_DeNSAS.sh";
 $rfam_run = "run_Rfam_DeNSAS.sh";
 $PFAM_run = "run_Pfam_DeNSAS.sh";
 $DNSASDIR = "/home/mmbrand/DeNSAS/";
+$IPRS_run = "run_iprs_DeNSAS.sh"
 
 #######################
 #CONFIG QUEUE VARIABLES
@@ -50,3 +51,4 @@ $soft_pfam_db="/state/partition1/db/pfam/Pfam-A.hmm"
 $soft_rfam_db="/state/partition1/db/rfam/Rfam.hmm"
 $soft_diamond_refseq="/state/partition1/db/blastdb/refseq_DIAMOND"
 $soft_diamond_merops="/state/partition1/db/blastdb/MEROPS_diamond"
+$soft_interproscan="/share/thunderstorm/programs/interproscan-5.35-74.0/interproscan.sh"

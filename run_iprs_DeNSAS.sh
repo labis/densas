@@ -5,15 +5,15 @@
 #FSTDIR
 #PRJ
 #DNSASDIR
-#soft_rfam_db
+#soft_IPRS_db
 #ncpus_insert
 
-TMPDIR="/state/partition1/RFAM_${PRJ}_$SGE_TASK_ID"
-RFAMDIR="$RUNDIR/RFAM"
+TMPDIR="/state/partition1/IPRS_${PRJ}_$SGE_TASK_ID"
+IPRSDIR="$RUNDIR/IPRS"
 NP=$NSLOTS
 
-if [ ! -d "$RFAMDIR" ]; then
-    mkdir $RFAMDIR
+if [ ! -d "$IPRSDIR" ]; then
+    mkdir $IPRSDIR
 fi
 
  if [ ! -d "$RUNDIR" ]; then
@@ -31,45 +31,36 @@ fi
     mkdir $RUNDIR/OUT
 fi
 
-echo "Let's get started
-Check all the folders that will be used:
-Running dir = $RUNDIR
-Fasta Dir = $FSTDIR
-Project name = $PRJ
-DeNSAS = $DNSASDIR
-Temp dir = $TMPDIR
-RFAMDIR = $RFAMDIR
-
-Send to queue by
-qsub ${DNSASDIR}/run_insert_results_DeNSAS.sh -t $SGE_TASK_ID -N ${PRJ}_inRFAM -d ./ -o $RUNDIR/OUT/Insert_RFAM_$SGE_TASK_ID.out -v 'RUNDIR=$RUNDIR, DNSASDIR=$DNSASDIR, PRJ=$PRJ, where=5'
-"
-
+###############################################
+#   STEP ONE:
+#   RUN TRANSDECODER AND FIND THE LONGEST ORFS
+#   IF RUNNING ATYPE=NUC
+###############################################
 
 cd $TMPDIR
 cp $FSTDIR/${PRJ}_$SGE_TASK_ID.fasta ./
-
-##############################################
-#   STEP ONE:
-#   RUN RFAM
-##############################################
-
-$soft_hmmscan -o temp_${PRJ}_hmm --tblout ${PRJ}_rfam.tblout --noali --cpu $NP $soft_rfam_db ${PRJ}_$SGE_TASK_ID.fasta
-perl ${DNSASDIR}//hmm_parser.pl ${PRJ}_rfam.tblout > $RFAMDIR/${PRJ}_RFAM_$SGE_TASK_ID.tsv
+if [ $ABLAST = "nuc" ]; then
+$soft_transdecoder/TransDecoder.LongOrfs -t ${PRJ}_$SGE_TASK_ID.fasta -m 50
+$soft_transdecoder/TransDecoder.Predict -t ${PRJ}_$SGE_TASK_ID.fasta
+runfile=${PRJ}_$SGE_TASK_ID.fasta.transdecoder_dir/longest_orfs.pep
+else
+runfile=${PRJ}_$SGE_TASK_ID.fasta
+fi
 
 ##############################################
 #   STEP TWO:
-#   Insert on DB
+#   Run interproscan
 ##############################################
 
-#/share/thunderstorm/perl5/perls/perl-5.18.1/bin/perl ${DNSASDIR}/insert_rfam_results.pl -i $RFAMDIR/${PRJ}_RFAM_$SGE_TASK_ID.tsv --prj $PRJ
-qsub ${DNSASDIR}/run_insert_results_DeNSAS.sh -t $SGE_TASK_ID -N ${PRJ}_inRFAM -q $qname -cwd -o $RUNDIR/OUT/In_RFAM_$SGE_TASK_ID.out -pe smp $ncpus_insert -v RUNDIR=$RUNDIR,DNSASDIR=$DNSASDIR,PRJ=$PRJ,where=5
+$soft_interproscan -i $runfile --cpu $NSLOTS -appl Pfam,Gene3D,TIGRFAM,SFLD -dp -iprlookup -pa -t p -T $TMPDIR -d $IPRSDIR -f tsv
+
 
 ##############################################
 #   STEP THREE:
 #   CLEAN UP
 ##############################################
-
-zip -rm ${PRJ}_rfam_$SGE_TASK_ID.zip ${PRJ}_rfam.tblout
-mv *.zip $RFAMDIR
-cd $RFAMDIR
+if [ $ABLAST = "nuc" ]; then
+mv ${PRJ}_$SGE_TASK_ID.fasta.transdecoder_dir/longest_orfs.pep $IPRSDIR/${PRJ}_${SGE_TASK_ID}_longest_orfs.pep
+fi
+cd $IPRSDIR
 rm -rf $TMPDIR

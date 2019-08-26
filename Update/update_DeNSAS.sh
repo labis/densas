@@ -191,7 +191,7 @@ mysqlimport -u$DBUSER -p$DBPASS -h $DBSERVER --use-threads=10 --local --delete -
 
 echo $(date -u) "Update the gi2uniprot database"
 perl $DensasDIR/Update/Create_gi2uniprot2.pl $DOWNLDATA/idmapping.tb > gi2uniprot.txt
-mysqlimport -u$DBUSER -p$DBPASS -h $DBSERVER --use-threads=10 --local --delete --columns "UniprotKB_acc,UniprotKB_id,GI" -d densas $DOWNLDATA/gi2uniprot.txt
+mysqlimport -u$DBUSER -p$DBPASS -h $DBSERVER --use-threads=10 --local --delete --columns "UniprotKB_acc,UniprotKB_id,Accession,GI" -d densas $DOWNLDATA/gi2uniprot.txt
 
 ##########
 #pfamA2GO

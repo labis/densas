@@ -7,7 +7,7 @@
 #DNSASDIR
 #soft_IPRS_db
 #ncpus_insert
-PATH=$PATH:/share/thunderstorm/programs/miniconda2/envs/interproscan/bin/
+PATH=$PATH:$soft_python3
 TMPDIR="/state/partition1/IPRS_${PRJ}_$SGE_TASK_ID"
 IPRSDIR="$RUNDIR/IPRS"
 NP=$NSLOTS

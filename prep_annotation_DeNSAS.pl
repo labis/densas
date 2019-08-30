@@ -5,6 +5,7 @@ use strict;
 use DBI;
 use Cwd qw();
 use File::Basename;
+use 5.010;
 
 ####################
 #GET THE CONFIG FILE
@@ -19,21 +20,15 @@ require "$real_path/config.pl";
 ####################
 
 our ($platform, $database, $host, $port, $user, $pw, $split_seqs, $rundir, $PRJ, $blast_run, $rfam_run, $PFAM_run, $DNSASDIR, $IPRS_run, $ncpus_blast, $ncpus_insert, $ncpus_hmm, $qname, $soft_aria, $soft_transdecoder, $soft_hmmscan, $soft_diamond, $soft_pfam_db, $soft_rfam_db, $soft_diamond_refseq, $soft_diamond_merops, $soft_interproscan);
-# my $split_seqs=1000;
 my $count=0;
 my $filenum=0;
 my $len=0;
-# my $rundir = "./DENSAS_an";
-# my $PRJ = "DENSAS";
 my $infile = "";
-# my $blast_run = "run_blast_DeNSAS.sh";
-# my $rfam_run = "run_Rfam_DeNSAS.sh";
-# my $PFAM_run = "run_Pfam_DeNSAS.sh";
 my $filename;
 my $fdb = 1;
 my $atype = "nuc"; #nuc=transcriptome pro=proteome
 my $ablast;
-# my $DNSASDIR = "/home/mmbrand/annotate/Runscripts/";
+my ($nb, $nm, $np, $nr, $ni);
 
 GetOptions ('split=s' => \$split_seqs,
             'rundir=s' => \$rundir,
@@ -41,6 +36,11 @@ GetOptions ('split=s' => \$split_seqs,
             'infile=s' => \$infile,
             'overdb=s' =>\$fdb,
             'atype=s' =>\$atype,
+            'nblast' => \$nb,
+            'nmerops' => \$nm,
+            'npfam' => \$np,
+            'nrfam' => \$nr,
+            'ninterpro' => \$ni,
             );
 
 # ###################################            
@@ -52,20 +52,12 @@ exit 1
 }
             
 my $fastadir = "$rundir/fasta"; 
+my $outdir = $rundir."/OUT/";
 my $out_template="${PRJ}_NUMBER.fasta";
 
 #####################
 #CONFIG DB VARIABLES
 #####################
-
-# 
-# my $platform = "mysql";
-# my $database = "annotate";
-# my $host = "";
-# #my $host = "localhost";
-# my $port = "3306";
-# my $user = "annotate";
-# my $pw = "";
 
 #Conects to the SQLite database
 my $dbh = DBI->connect("dbi:mysql:$database:$host:$port", "$user", "$pw",
@@ -76,7 +68,7 @@ my $dbh = DBI->connect("dbi:mysql:$database:$host:$port", "$user", "$pw",
 #CHECK IF THE PROJECT NAME EXISTS
 ##################################
 
-my $Check_PRJ = $dbh->selectall_arrayref("show tables like '$PRJ%'")
+my $Check_PRJ = $dbh->selectall_arrayref("show tables like 'EXP_$PRJ%'")
 or die "print unable to connect to the DB";                    
                     
 if (scalar(@$Check_PRJ) == 0) {
@@ -85,10 +77,10 @@ print "The project name $PRJ is available, Let's continue\n";
 ###########################
 #CREATE TABLE BLASTresults
 ###########################
-
+if (! $nb) {
 print "Finding a place for your similarity search\n";
 $dbh->do("
-CREATE TABLE IF NOT EXISTS `$PRJ\_blastRESULTS` (
+CREATE TABLE IF NOT EXISTS `EXP_$PRJ\_blastRESULTS` (
   `blstRSLTSID` int(11) NOT NULL AUTO_INCREMENT,
   `Seqname` varchar(50) DEFAULT NULL,
   `seqGI` varchar(50) DEFAULT NULL COMMENT 'GI number',
@@ -101,15 +93,15 @@ CREATE TABLE IF NOT EXISTS `$PRJ\_blastRESULTS` (
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 ");
   $dbh->commit();
-
+}
 ###########################
 #CREATE TABLE EXISTS MEROPS_results
 ###########################
 
 print "Building a home for the MEROPS search\n";
-
+if (! $nm) {
 $dbh->do("
-CREATE TABLE IF NOT EXISTS `$PRJ\_MEROPS` (
+CREATE TABLE IF NOT EXISTS `EXP_$PRJ\_MEROPS` (
   `MeropsID` int(11) NOT NULL AUTO_INCREMENT,
   `Seqname` varchar(50) DEFAULT NULL,
   `mernum` varchar(50) DEFAULT NULL COMMENT 'MEROPS number',
@@ -127,15 +119,15 @@ CREATE TABLE IF NOT EXISTS `$PRJ\_MEROPS` (
 
 ");
   $dbh->commit();
-
+}
 ###########################
 #CREATE TABLE PFAM_results
 ###########################
-
+if (! $np) {
 print "PFAM, where you lay your head is home\n";
 
 $dbh->do("
-CREATE TABLE IF NOT EXISTS `$PRJ\_PFAM`(
+CREATE TABLE IF NOT EXISTS `EXP_$PRJ\_PFAM`(
   `pfamID` int(11) NOT NULL AUTO_INCREMENT,
   `Seqname` varchar(50) DEFAULT NULL,
   `pfamA_id` varchar(50) DEFAULT NULL,
@@ -149,15 +141,15 @@ CREATE TABLE IF NOT EXISTS `$PRJ\_PFAM`(
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 ");
   $dbh->commit();
-
+}
 ###########################
 #CREATE TABLE RFAM_results
 ###########################
-
+if (! $nr) {
 print "Building a storage for RFAM\n";
 
 $dbh->do("
-CREATE TABLE IF NOT EXISTS `$PRJ\_RFAM`(
+CREATE TABLE IF NOT EXISTS `EXP_$PRJ\_RFAM`(
   `rfamID` int(11) NOT NULL AUTO_INCREMENT,
   `Seqname` varchar(50) DEFAULT NULL,
   `rfam_id` varchar(50) DEFAULT NULL,
@@ -170,7 +162,7 @@ CREATE TABLE IF NOT EXISTS `$PRJ\_RFAM`(
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 ");
   $dbh->commit();
-
+}
   
   ##############################
   # CLOSE IF TABLE DO NOT EXIST
@@ -207,6 +199,15 @@ unless(-d $rundir){
 unless(-d $fastadir){
     mkdir $fastadir;
     print "Creating directory $fastadir\n";
+}
+
+#############################
+#create Directories OUT
+#############################
+
+unless(-d $outdir){
+    mkdir $outdir;
+    print "Creating directory $outdir\n";
 }
 
 #####################################
@@ -280,35 +281,38 @@ print "Sending JOBS to the queue system\n";
 ###############
 #DIAMOND REFSEQ
 ###############
-
-print "There goes all similarities\n FIRING BLAST!\n";
-my $result_blast = system("qsub -t 1-${filenum} -N ${PRJ}_blast -q $qname -cwd -o $rundir/OUT/${PRJ}_BLAST.out -e $rundir/OUT/${PRJ}_BLAST.err -pe smp $ncpus_blast -v RUNDIR=$rundir,FSTDIR=$fastadir,DNSASDIR=$DNSASDIR,PRJ=$PRJ,ABLAST=$ablast,soft_diamond=$soft_diamond,soft_diamond_refseq=$soft_diamond_refseq,ncpus_insert=$ncpus_insert,where=2 ${DNSASDIR}/$blast_run");
-print "blast = $?\n";
-
+say $nb ? 'Not runing REFSEQ' : 'FIRING blast!';
+if (! $nb) {
+  my $result_blast = system("qsub -t 1-${filenum} -N ${PRJ}_blast -q $qname -cwd -o $rundir/OUT/${PRJ}_BLAST.out -e $rundir/OUT/${PRJ}_BLAST.err -pe smp $ncpus_blast -v RUNDIR=$rundir,FSTDIR=$fastadir,DNSASDIR=$DNSASDIR,PRJ=$PRJ,ABLAST=$ablast,soft_diamond=$soft_diamond,soft_diamond_refseq=$soft_diamond_refseq,ncpus_insert=$ncpus_insert,where=2 ${DNSASDIR}/$blast_run");
+  print "blast = $?\n";
+  } 
 #############
 #BLAST MEROPS
 #############
-
-print "FIRING MEROPS!\n";
-my $result_MEROPS = system("qsub -t 1-${filenum} -N ${PRJ}_MEROPS -q $qname -cwd -o $rundir/OUT/${PRJ}_MEROPS.out -e $rundir/OUT/${PRJ}_MEROPS.err -pe smp $ncpus_blast -v RUNDIR=$rundir,FSTDIR=$fastadir,DNSASDIR=$DNSASDIR,PRJ=$PRJ,ABLAST=$ablast,soft_diamond=$soft_diamond,soft_diamond_merops=$soft_diamond_merops,ncpus_insert=$ncpus_insert,where=4 ${DNSASDIR}/$blast_run");
-print "MEROPS = $?\n";
+say $nm ? 'Not running MEROPS' : 'FIRING MEROPS!';
+if (! $nm) {
+  my $result_MEROPS = system("qsub -t 1-${filenum} -N ${PRJ}_MEROPS -q $qname -cwd -o $rundir/OUT/${PRJ}_MEROPS.out -e $rundir/OUT/${PRJ}_MEROPS.err -pe smp $ncpus_blast -v RUNDIR=$rundir,FSTDIR=$fastadir,DNSASDIR=$DNSASDIR,PRJ=$PRJ,ABLAST=$ablast,soft_diamond=$soft_diamond,soft_diamond_merops=$soft_diamond_merops,ncpus_insert=$ncpus_insert,where=4 ${DNSASDIR}/$blast_run");
+  print "MEROPS = $?\n";
+  }
 
 ###########
 #HMMER PFAM
 ###########
-
-print "FIRING PFAM!\n";
-my $result_PFAM = system("qsub -t 1-${filenum} -N ${PRJ}_pfam -q $qname -cwd -o $rundir/OUT/PFAM.out -e $rundir/OUT/PFAM_.err -pe smp $ncpus_blast -v RUNDIR=$rundir,FSTDIR=$fastadir,DNSASDIR=$DNSASDIR,PRJ=$PRJ,ABLAST=$ablast,ncpus_insert=$ncpus_insert,qname=$qname,soft_transdecoder=$soft_transdecoder,soft_hmmscan=$soft_hmmscan,soft_pfam_db=$soft_pfam_db ${DNSASDIR}/$PFAM_run");
-print "PFAM = $?\n";
+say $np ? 'Not running PFAM' : 'FIRING PFAM!';
+if (! $np) {
+  my $result_PFAM = system("qsub -t 1-${filenum} -N ${PRJ}_pfam -q $qname -cwd -o $rundir/OUT/${PRJ}_PFAM.out -e $rundir/OUT/${PRJ}_PFAM.err -pe smp $ncpus_blast -v RUNDIR=$rundir,FSTDIR=$fastadir,DNSASDIR=$DNSASDIR,PRJ=$PRJ,ABLAST=$ablast,ncpus_insert=$ncpus_insert,qname=$qname,soft_transdecoder=$soft_transdecoder,soft_hmmscan=$soft_hmmscan,soft_pfam_db=$soft_pfam_db ${DNSASDIR}/$PFAM_run");
+  print "PFAM = $?\n";
+  }
 
 ###########
 #HMMER RFAM
 ###########
-
-print "FIRING RFAM!\n";
-if ($atype eq "nuc") {
-my $result_RFAM = system("qsub -t 1-${filenum} -N ${PRJ}_rfam -q $qname -cwd -o $rundir/OUT/RFAM.out -e $rundir/OUT/RFAM.err -pe smp $ncpus_blast -v RUNDIR=$rundir,FSTDIR=$fastadir,DNSASDIR=$DNSASDIR,PRJ=$PRJ,ABLAST=$ablast,ncpus_insert=$ncpus_insert,qname=$qname,soft_transdecoder=$soft_transdecoder,soft_hmmscan=$soft_hmmscan,soft_rfam_db=$soft_rfam_db ${DNSASDIR}/$rfam_run");
-}
+say $nr ? 'Not running RFAM' : 'FIRING RFAM!';
+if (! $nr) {
+  if ($atype eq "nuc") {
+    my $result_RFAM = system("qsub -t 1-${filenum} -N ${PRJ}_rfam -q $qname -cwd -o $rundir/OUT/${PRJ}_RFAM.out -e $rundir/OUT/${PRJ}_RFAM.err -pe smp $ncpus_blast -v RUNDIR=$rundir,FSTDIR=$fastadir,DNSASDIR=$DNSASDIR,PRJ=$PRJ,ABLAST=$ablast,ncpus_insert=$ncpus_insert,qname=$qname,soft_transdecoder=$soft_transdecoder,soft_hmmscan=$soft_hmmscan,soft_rfam_db=$soft_rfam_db ${DNSASDIR}/$rfam_run");
+    }
+  }
 
 # print "Blast is running under $result_blast and RFAM under $result_RFAM";
 # 
@@ -316,10 +320,11 @@ my $result_RFAM = system("qsub -t 1-${filenum} -N ${PRJ}_rfam -q $qname -cwd -o 
 #############
 #INTERPROSCAN
 #############
-
-print "FIRING Interproscan!\n";
-my $result_IPRS = system("qsub -t 1-${filenum} -N ${PRJ}_IPRS -q $qname -cwd -o $rundir/OUT/IPRS.out -e $rundir/OUT/IPRS_.err -pe smp $ncpus_blast -v RUNDIR=$rundir,FSTDIR=$fastadir,DNSASDIR=$DNSASDIR,PRJ=$PRJ,ABLAST=$ablast,ncpus_insert=$ncpus_insert,qname=$qname,soft_transdecoder=$soft_transdecoder,soft_interproscan=$soft_interproscan ${DNSASDIR}/$IPRS_run");
-print "PFAM = $?\n";
+say $ni ? 'Not running interproscan' : 'FIRING Interproscan!';
+if (! $ni) {
+  my $result_IPRS = system("qsub -t 1-${filenum} -N ${PRJ}_IPRS -q $qname -cwd -o $rundir/OUT/${PRJ}_IPRS.out -e $rundir/OUT/${PRJ}_IPRS.err -pe smp $ncpus_blast -v RUNDIR=$rundir,FSTDIR=$fastadir,DNSASDIR=$DNSASDIR,PRJ=$PRJ,ABLAST=$ablast,ncpus_insert=$ncpus_insert,qname=$qname,soft_transdecoder=$soft_transdecoder,soft_interproscan=$soft_interproscan ${DNSASDIR}/$IPRS_run");
+  print "PFAM = $?\n";
+  }
 
 print "Done\n Have a nice day \;)\n";
 

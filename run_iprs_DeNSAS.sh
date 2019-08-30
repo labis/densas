@@ -7,7 +7,7 @@
 #DNSASDIR
 #soft_IPRS_db
 #ncpus_insert
-
+PATH=$PATH:/share/thunderstorm/programs/miniconda2/envs/interproscan/bin/
 TMPDIR="/state/partition1/IPRS_${PRJ}_$SGE_TASK_ID"
 IPRSDIR="$RUNDIR/IPRS"
 NP=$NSLOTS
@@ -52,12 +52,7 @@ fi
 #   Run interproscan
 ##############################################
 
-<<<<<<< HEAD
-$soft_interproscan -i $runfile --cpu $NSLOTS -appl Pfam,Gene3D,TIGRFAM,SFLD -dp -iprlookup -pa -t p -T $TMPDIR -d $IPRSDIR -f tsv
-=======
-$soft_interproscan -i $runfile --cpu $NSLOTS -appl Pfam,Gene3D,TIGRFAM,SFLD -dp -iprlookup -goterms -pa -t p -T $TMPDIR -b $IPRSDIR -f tsv
->>>>>>> 5adeabeda3f749644be2a4d580075e0435ebb298
-
+$soft_interproscan -i $runfile --cpu $NSLOTS -appl Pfam,Gene3D,TIGRFAM,SFLD -dp -iprlookup -goterms -pa -t p -T $TMPDIR -d $IPRSDIR -f tsv
 
 ##############################################
 #   STEP THREE:

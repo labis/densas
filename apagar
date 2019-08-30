@@ -1,0 +1,13 @@
+filenum=7
+PRJ=GNA
+qname=all.q
+rundir="/home/mmbrand/Experimentos/Genoma_andre/GNA_an"
+ncpus_blast=7
+fastadir="/home/mmbrand/Experimentos/Genoma_andre/GNA_an/fasta"
+DNSASDIR="/home/mmbrand/Experimentos/DeNSAS/"
+ablast=prot
+ncpus_insert=2
+soft_transdecoder="/share/thunderstorm/programs/miniconda2/envs/DeNSAS/bin"
+soft_interproscan="/share/thunderstorm/programs/interproscan-5.35-74.0/interproscan.sh"
+IPRS_run="run_iprs_DeNSAS.sh"
+qsub -t 1-${filenum} -N ${PRJ}_IPRS -q $qname -cwd -o $rundir/OUT/IPRS.out -e $rundir/OUT/IPRS_.err -pe smp $ncpus_blast -v RUNDIR=$rundir,FSTDIR=$fastadir,DNSASDIR=$DNSASDIR,PRJ=$PRJ,ABLAST=$ablast,ncpus_insert=$ncpus_insert,qname=$qname,soft_transdecoder=$soft_transdecoder,soft_interproscan=$soft_interproscan ${DNSASDIR}/$IPRS_run

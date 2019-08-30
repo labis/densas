@@ -27,28 +27,28 @@ $PRJ = "DENSAS";
 $blast_run = "run_blast_DeNSAS.sh";
 $rfam_run = "run_Rfam_DeNSAS.sh";
 $PFAM_run = "run_Pfam_DeNSAS.sh";
-$DNSASDIR = "/home/mmbrand/DeNSAS/";
-$IPRS_run = "run_iprs_DeNSAS.sh"
+$DNSASDIR = "/home/mmbrand/Experimentos/DeNSAS/";
+$IPRS_run = "run_iprs_DeNSAS.sh";
 
 #######################
 #CONFIG QUEUE VARIABLES
 #######################
 
-$ncpus_blast=12
-$ncpus_insert=2
-$ncpus_hmm=4
-$qname="all.q"
+$ncpus_blast=12;
+$ncpus_insert=2;
+$ncpus_hmm=4;
+$qname="all.q";
 
 #########################
 #CONFIG SOFTWARE LOCATION
 #########################
 
-$soft_aria="/usr/bin/aria2c"
-$soft_transdecoder="/share/thunderstorm/programs/miniconda2/envs/DeNSAS/bin"
-$soft_hmmscan="/share/thunderstorm/programs/miniconda2/envs/DeNSAS/bin/hmmscan"
-$soft_diamond="/share/thunderstorm/programs/miniconda2/envs/DeNSAS/bin/diamond"
-$soft_pfam_db="/state/partition1/db/pfam/Pfam-A.hmm"
-$soft_rfam_db="/state/partition1/db/rfam/Rfam.hmm"
-$soft_diamond_refseq="/state/partition1/db/blastdb/refseq_DIAMOND"
-$soft_diamond_merops="/state/partition1/db/blastdb/MEROPS_diamond"
-$soft_interproscan="/share/thunderstorm/programs/interproscan-5.35-74.0/interproscan.sh"
+$soft_aria="/usr/bin/aria2c";
+$soft_transdecoder="/share/thunderstorm/programs/miniconda2/envs/DeNSAS/bin";
+$soft_hmmscan="/share/thunderstorm/programs/miniconda2/envs/DeNSAS/bin/hmmscan";
+$soft_diamond="/share/thunderstorm/programs/miniconda2/envs/DeNSAS/bin/diamond";
+$soft_pfam_db="/state/partition1/DBs/pfam/Pfam-A.hmm";
+$soft_rfam_db="/state/partition1/DBs/rfam/Rfam.hmm";
+$soft_diamond_refseq="/state/partition1/DBs/blastdb/refseq_DIAMOND";
+$soft_diamond_merops="/state/partition1/DBs/blastdb/MEROPS_diamond";
+$soft_interproscan="/share/thunderstorm/programs/interproscan-5.35-74.0/interproscan.sh";

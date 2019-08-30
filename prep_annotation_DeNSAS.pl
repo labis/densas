@@ -19,7 +19,7 @@ require "$real_path/config.pl";
 #Get all the options
 ####################
 
-our ($platform, $database, $host, $port, $user, $pw, $split_seqs, $rundir, $PRJ, $blast_run, $rfam_run, $PFAM_run, $DNSASDIR, $IPRS_run, $ncpus_blast, $ncpus_insert, $ncpus_hmm, $qname, $soft_aria, $soft_transdecoder, $soft_hmmscan, $soft_diamond, $soft_pfam_db, $soft_rfam_db, $soft_diamond_refseq, $soft_diamond_merops, $soft_interproscan);
+our ($platform, $database, $host, $port, $user, $pw, $split_seqs, $rundir, $PRJ, $blast_run, $rfam_run, $PFAM_run, $DNSASDIR, $IPRS_run, $ncpus_blast, $ncpus_insert, $ncpus_hmm, $qname, $soft_aria, $soft_transdecoder, $soft_hmmscan, $soft_diamond, $soft_pfam_db, $soft_rfam_db, $soft_diamond_refseq, $soft_diamond_merops, $soft_interproscan, $soft_python3);
 my $count=0;
 my $filenum=0;
 my $len=0;
@@ -322,7 +322,7 @@ if (! $nr) {
 #############
 say $ni ? 'Not running interproscan' : 'FIRING Interproscan!';
 if (! $ni) {
-  my $result_IPRS = system("qsub -t 1-${filenum} -N ${PRJ}_IPRS -q $qname -cwd -o $rundir/OUT/${PRJ}_IPRS.out -e $rundir/OUT/${PRJ}_IPRS.err -pe smp $ncpus_blast -v RUNDIR=$rundir,FSTDIR=$fastadir,DNSASDIR=$DNSASDIR,PRJ=$PRJ,ABLAST=$ablast,ncpus_insert=$ncpus_insert,qname=$qname,soft_transdecoder=$soft_transdecoder,soft_interproscan=$soft_interproscan ${DNSASDIR}/$IPRS_run");
+  my $result_IPRS = system("qsub -t 1-${filenum} -N ${PRJ}_IPRS -q $qname -cwd -o $rundir/OUT/${PRJ}_IPRS.out -e $rundir/OUT/${PRJ}_IPRS.err -pe smp $ncpus_blast -v RUNDIR=$rundir,FSTDIR=$fastadir,DNSASDIR=$DNSASDIR,PRJ=$PRJ,ABLAST=$ablast,ncpus_insert=$ncpus_insert,qname=$qname,soft_transdecoder=$soft_transdecoder,soft_interproscan=$soft_interproscan,soft_python3=$soft_python3 ${DNSASDIR}/$IPRS_run");
   print "PFAM = $?\n";
   }
 

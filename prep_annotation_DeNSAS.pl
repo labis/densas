@@ -83,13 +83,12 @@ $dbh->do("
 CREATE TABLE IF NOT EXISTS `EXP_$PRJ\_blastRESULTS` (
   `blstRSLTSID` int(11) NOT NULL AUTO_INCREMENT,
   `Seqname` varchar(50) DEFAULT NULL,
-  `seqGI` varchar(50) DEFAULT NULL COMMENT 'GI number',
   `seqACC` varchar(50) DEFAULT NULL COMMENT 'Access number',
   `pident` double DEFAULT NULL COMMENT 'Percentage of identical matches',
   `evalue` double DEFAULT NULL COMMENT ' Expect value',
   `bitscore` double DEFAULT NULL COMMENT 'Bitscore from blast',
   PRIMARY KEY (`blstRSLTSID`),
-  KEY `IDX_blastRSLTS` (`Seqname`,`seqGI`,`seqACC`)
+  KEY `IDX_blastRSLTS` (`Seqname`,`seqACC`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 ");
   $dbh->commit();

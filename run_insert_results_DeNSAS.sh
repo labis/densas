@@ -1,10 +1,4 @@
 #!/bin/bash
-#PBS -m abe
-#PBS -l nodes=1:ppn=2
-#PBS -l walltime=350:00:00
-#PBS -q default
-#PBS -j oe
-
 
 #RUNDIR= Comes from the prep_annotation.pl
 #FSTDIR= Comes from the prep_annotation.pl
@@ -19,7 +13,9 @@ PFAMDIR="$RUNDIR/PFAM"
 RFAMDIR="$RUNDIR/RFAM"
 FSTDIR="$RUNDIR/fasta"
 
-hostname
+echo "running at " & hostname
+echo $where
+echo RUNDIR=$RUNDIR,DNSASDIR=$DNSASDIR,PRJ=$PRJ,where=$where
 
 #############
 #REFSEQ / BLASTx
@@ -37,7 +33,7 @@ fi
 
 if [ $where = 2 ]; then
 echo "Inserting DIAMOND using refseq_protein database for DIAMOND"
-/opt/perl/bin/perl ${DNSASDIR}/insert_blast_results_directly.pl -i $BLSTDIR/${PRJ}_blastx_$SGE_TASK_ID.tsv --prj ${PRJ}
+perl ${DNSASDIR}/insert_blast_results_directly.pl -i $BLSTDIR/${PRJ}_blastx_$SGE_TASK_ID.tsv --prj ${PRJ}
 fi
 
 #############

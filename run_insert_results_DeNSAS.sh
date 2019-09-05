@@ -17,6 +17,7 @@ echo "running at " & hostname
 echo $where
 echo RUNDIR=$RUNDIR,DNSASDIR=$DNSASDIR,PRJ=$PRJ,where=$where
 
+cd $RUNDIR
 #############
 #REFSEQ / BLASTx
 #############
@@ -24,7 +25,7 @@ echo RUNDIR=$RUNDIR,DNSASDIR=$DNSASDIR,PRJ=$PRJ,where=$where
 if [ $where = 1 ]; then
 echo "Inserting blastx using refseq_protein database"
 echo "Running: /opt/perl/bin/perl ${DNSASDIR}/insert_blast_results_createTXT.pl -i $BLSTDIR/${PRJ}_blastx_$SGE_TASK_ID.tsv --prj ${PRJ}"
-/opt/perl/bin/perl ${DNSASDIR}/insert_blast_results_createTXT.pl -i $BLSTDIR/${PRJ}_blastx_$SGE_TASK_ID.tsv --prj ${PRJ} > $BLSTDIR/${PRJ}_blastx_$SGE_TASK_ID.db
+perl ${DNSASDIR}/insert_blast_results_createTXT.pl -i $BLSTDIR/${PRJ}_blastx_$SGE_TASK_ID.tsv --prj ${PRJ} > $BLSTDIR/${PRJ}_blastx_$SGE_TASK_ID.db
 fi
 
 #############
@@ -42,7 +43,7 @@ fi
 
 if [ $where = 3 ]; then
 echo "Inserting blastx using MEROPS database"
-/opt/perl/bin/perl ${DNSASDIR}/insert_merops_results_directly.pl -i $MRPSDIR/${PRJ}_Blastx_$SGE_TASK_ID.tsv --prj ${PRJ}
+perl ${DNSASDIR}/insert_merops_results_directly.pl -i $MRPSDIR/${PRJ}_Blastx_$SGE_TASK_ID.tsv --prj ${PRJ}
 fi
 
 #############
@@ -51,7 +52,7 @@ fi
 
 if [ $where = 4 ]; then
 echo "Inserting PFAM"
-/opt/perl/bin/perl ${DNSASDIR}/insert_pfam_results_directly.pl --prj $PRJ --infile $PFAMDIR/${PRJ}_PFAM_$SGE_TASK_ID.tsv
+perl ${DNSASDIR}/insert_pfam_results_directly.pl --prj $PRJ --infile $PFAMDIR/${PRJ}_PFAM_$SGE_TASK_ID.tsv
 fi
 
 #############
@@ -60,5 +61,5 @@ fi
 
 if [ $where = 5 ]; then
 echo "Inserting RFAM"
-/opt/perl/bin/perl ${DNSASDIR}/insert_rfam_results_directly.pl -i $RFAMDIR/${PRJ}_RFAM_$SGE_TASK_ID.tsv --prj $PRJ
+perl ${DNSASDIR}/insert_rfam_results_directly.pl -i $RFAMDIR/${PRJ}_RFAM_$SGE_TASK_ID.tsv --prj $PRJ
 fi

@@ -50,7 +50,7 @@ Peptide dir $RUNDIR/PEP
 PFAMDIR = $RUNDIR/PFAM
 
 Send to queue by
-qsub ${DNSASDIR}/run_insert_results_DeNSAS.sh -t $SGE_TASK_ID -N ${PRJ}_inPFAM -d ./ -o $RUNDIR/OUT/Insert_PFAM_$SGE_TASK_ID.out -v 'RUNDIR=$RUNDIR, DNSASDIR=$DNSASDIR, PRJ=$PRJ, where=4'
+qsub -t $SGE_TASK_ID -N ${PRJ}_inPFAM -q $qname -cwd -o $RUNDIR/OUT/In_PFAM_$SGE_TASK_ID.out -pe smp $ncpus_insert -v RUNDIR=$RUNDIR,DNSASDIR=$DNSASDIR,PRJ=$PRJ,where=4 ${DNSASDIR}/run_insert_results_DeNSAS.sh
 "
 
 ###############################################
@@ -81,8 +81,8 @@ perl ${DNSASDIR}/hmm_parser.pl ${PRJ}_${SGE_TASK_ID}_pfam.tblout > $PFAMDIR/${PR
 #   Insert on DB
 ##############################################
 
-print "GOING TO DeNSASdb\n"
-qsub ${DNSASDIR}/run_insert_results_DeNSAS.sh -t $SGE_TASK_ID -N ${PRJ}_inPFAM -q $qname -cwd -o $RUNDIR/OUT/In_PFAM_$SGE_TASK_ID.out -pe smp $ncpus_insert -v RUNDIR=$RUNDIR,DNSASDIR=$DNSASDIR,PRJ=$PRJ,where=4
+echo "GOING TO DeNSASdb\n"
+qsub -t $SGE_TASK_ID -N ${PRJ}_inPFAM -q $qname -o $RUNDIR/OUT/In_PFAM_$SGE_TASK_ID.out -pe smp $ncpus_insert -v RUNDIR=$RUNDIR,DNSASDIR=$DNSASDIR,PRJ=$PRJ,where=4 ${DNSASDIR}/run_insert_results_DeNSAS.sh
 
 ##############################################
 #   STEP FOUR:
@@ -90,11 +90,9 @@ qsub ${DNSASDIR}/run_insert_results_DeNSAS.sh -t $SGE_TASK_ID -N ${PRJ}_inPFAM -
 ##############################################
 if [ $ABLAST = "nuc" ]; then
 mv ${PRJ}_$SGE_TASK_ID.fasta.transdecoder_dir/longest_orfs.pep $PEPDIR/${PRJ}_PFAM_$SGE_TASK_ID.pep
+mv $PFAMDIR/*.pep $PEPDIR/
 fi
 zip -rm ${PRJ}_${SGE_TASK_ID}_pfam.tblout.zip ${PRJ}_${SGE_TASK_ID}_pfam.tblout
-# tar -zcvpf ${PRJ}_$SGE_TASK_ID.fasta_dir.tar.gz ${PRJ}_$SGE_TASK_ID.fasta_dir/ --remove-files
-mv $PFAMDIR/*.pep $PEPDIR/
-mv *.tar.gz $PFAMDIR
 mv *.zip $PFAMDIR
 cd $PFAMDIR
 rm -rf $TMPDIR

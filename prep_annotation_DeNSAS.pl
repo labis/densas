@@ -6,6 +6,9 @@ use DBI;
 use Cwd qw();
 use File::Basename;
 use 5.010;
+use warnings;
+use Term::ANSIColor qw(:constants);
+$Term::ANSIColor::AUTORESET = 1; # auto reset colors
 
 ####################
 #GET THE CONFIG FILE
@@ -47,13 +50,39 @@ GetOptions ('split=s' => \$split_seqs,
 # # CHECK IF ALL VARIABLES ARE THERE
 # ###################################
 if ((!$split_seqs) || (!$rundir) || (!$PRJ) || (!$infile)) {
-print "Some required arguments are missing.\nYou must use this as follow:\n$0 --split [number of sequences/file] --rundir [/where/to/output/results/ ] --prj [ PROJECT ] --overdb [0|1] --atype [nuc|pro] --infile [ FASTA FILE ]\n";
+  print BOLD RED "Warning.\n";
+  print BOLD BLUE "Some required arguments are missing.\nYou must use this as follow:\n$0 --split [number of sequences/file] --rundir [/where/to/output/results/ ] --prj [ PROJECT ] --overdb [0|1] --atype [nuc|pro] --infile [ FASTA FILE ]\n";
 exit 1
 }
             
 my $fastadir = "$rundir/fasta"; 
 my $outdir = $rundir."/OUT/";
 my $out_template="${PRJ}_NUMBER.fasta";
+
+
+#########################
+#GET THE SEQUENCE NAMES
+#########################
+
+open(FASTAhdr, $infile);
+open (FASTAhdrfile, ">$rundir/$PRJ\_header.txt");
+while(<FASTAhdr>) {
+    chomp($_);
+    if ($_ =~  m/^>/ ) {
+        my $header = $_;
+        $header =~ s/\>([^\s]+).*/$1/i;
+        if (length($header) > 50 ) { 
+          print BOLD RED "Warning.\n";
+          print BOLD BLUE "At least one sequence header is greater than 50 characters\n Please, use rename_sequences.pl to rename your sequences\n";
+          unlink "$rundir/$PRJ\_header.txt";
+          exit();
+        } else {
+          print FASTAhdrfile "$header\n";
+        }
+        
+    }
+}
+close(FASTAhdrfile); 
 
 #####################
 #CONFIG DB VARIABLES
@@ -72,13 +101,14 @@ my $Check_PRJ = $dbh->selectall_arrayref("show tables like 'EXP_$PRJ%'")
 or die "print unable to connect to the DB";                    
                     
 if (scalar(@$Check_PRJ) == 0) {
-print "The project name $PRJ is available, Let's continue\n";
+  print "The project name $PRJ is available, Let's continue\n";
 
 ###########################
 #CREATE TABLE BLASTresults
 ###########################
-if (! $nb) {
 print "Finding a place for your similarity search\n";
+if (! $nb) {
+  say "Creating blastDB";
 $dbh->do("
 CREATE TABLE IF NOT EXISTS `EXP_$PRJ\_blastRESULTS` (
   `blstRSLTSID` int(11) NOT NULL AUTO_INCREMENT,
@@ -96,9 +126,8 @@ CREATE TABLE IF NOT EXISTS `EXP_$PRJ\_blastRESULTS` (
 ###########################
 #CREATE TABLE EXISTS MEROPS_results
 ###########################
-
-print "Building a home for the MEROPS search\n";
 if (! $nm) {
+  say "Building a home for the MEROPS search";
 $dbh->do("
 CREATE TABLE IF NOT EXISTS `EXP_$PRJ\_MEROPS` (
   `MeropsID` int(11) NOT NULL AUTO_INCREMENT,
@@ -123,8 +152,7 @@ CREATE TABLE IF NOT EXISTS `EXP_$PRJ\_MEROPS` (
 #CREATE TABLE PFAM_results
 ###########################
 if (! $np) {
-print "PFAM, where you lay your head is home\n";
-
+  say "PFAM, where you lay your head is home";
 $dbh->do("
 CREATE TABLE IF NOT EXISTS `EXP_$PRJ\_PFAM`(
   `pfamID` int(11) NOT NULL AUTO_INCREMENT,
@@ -145,8 +173,7 @@ CREATE TABLE IF NOT EXISTS `EXP_$PRJ\_PFAM`(
 #CREATE TABLE RFAM_results
 ###########################
 if (! $nr) {
-print "Building a storage for RFAM\n";
-
+  say "Building a storage for RFAM";
 $dbh->do("
 CREATE TABLE IF NOT EXISTS `EXP_$PRJ\_RFAM`(
   `rfamID` int(11) NOT NULL AUTO_INCREMENT,
@@ -176,11 +203,11 @@ CREATE TABLE IF NOT EXISTS `EXP_$PRJ\_RFAM`(
 if ($fdb eq 1) {
     die "Sorry, the project name $PRJ was already choosen :(\nBut, no fear just choose another one ;)\n";
     } else {
-        print "The project name $PRJ exists, but, -fdb was set to 0, so, let's continue\nRemember that all data on the server database will be lost!\n";
+        print BOLD YELLOW "The project name $PRJ exists, but, -fdb was set to 0, so, let's continue\nRemember that all data on the server database will be lost!\n";
         }
 }
 
-                   
+              
 
 ##########################
 #create Directories rundir
@@ -208,6 +235,9 @@ unless(-d $outdir){
     mkdir $outdir;
     print "Creating directory $outdir\n";
 }
+
+
+
 
 #####################################
 #Open infile and split all sequences
@@ -245,21 +275,7 @@ while (<$fh>) {
 close(SHORT);
 warn "\nSplit $count FASTA records in $. lines, with total sequence length $len\nCreated $filenum files like $filename\n\n";
 
-#########################
-#GET THE SEQUENCE NAMES
-#########################
 
-open(FASTAhdr, $infile);
-open (FASTAhdrfile, ">$rundir/$PRJ\_header.txt");
-while(<FASTAhdr>) {
-    chomp($_);
-    if ($_ =~  m/^>/ ) {
-        my $header = $_;
-        $header =~ s/\>([^\s]+).*/$1/i;
-        print FASTAhdrfile "$header\n";
-    }
-}
-close(FASTAhdrfile);
 
 ##########################
 #SET THE TYPE OF SEQUENCES
@@ -282,7 +298,7 @@ print "Sending JOBS to the queue system\n";
 ###############
 say $nb ? 'Not runing REFSEQ' : 'FIRING blast!';
 if (! $nb) {
-  my $result_blast = system("qsub -t 1-${filenum} -N ${PRJ}_blast -q $qname -cwd -o $rundir/OUT/${PRJ}_BLAST.out -e $rundir/OUT/${PRJ}_BLAST.err -pe smp $ncpus_blast -v RUNDIR=$rundir,FSTDIR=$fastadir,DNSASDIR=$DNSASDIR,PRJ=$PRJ,ABLAST=$ablast,soft_diamond=$soft_diamond,soft_diamond_refseq=$soft_diamond_refseq,ncpus_insert=$ncpus_insert,where=2 ${DNSASDIR}/$blast_run");
+  my $result_blast = system("qsub -t 1-${filenum} -N ${PRJ}_blast -q $qname -cwd -o $rundir/OUT/${PRJ}_BLAST.out -e $rundir/OUT/${PRJ}_BLAST.err -pe smp $ncpus_blast -v RUNDIR=$rundir,FSTDIR=$fastadir,DNSASDIR=$DNSASDIR,PRJ=$PRJ,ABLAST=$ablast,soft_diamond=$soft_diamond,soft_diamond_refseq=$soft_diamond_refseq,ncpus_insert=$ncpus_insert,qname=$qname,where=2 ${DNSASDIR}/$blast_run");
   print "blast = $?\n";
   } 
 #############
@@ -290,7 +306,7 @@ if (! $nb) {
 #############
 say $nm ? 'Not running MEROPS' : 'FIRING MEROPS!';
 if (! $nm) {
-  my $result_MEROPS = system("qsub -t 1-${filenum} -N ${PRJ}_MEROPS -q $qname -cwd -o $rundir/OUT/${PRJ}_MEROPS.out -e $rundir/OUT/${PRJ}_MEROPS.err -pe smp $ncpus_blast -v RUNDIR=$rundir,FSTDIR=$fastadir,DNSASDIR=$DNSASDIR,PRJ=$PRJ,ABLAST=$ablast,soft_diamond=$soft_diamond,soft_diamond_merops=$soft_diamond_merops,ncpus_insert=$ncpus_insert,where=4 ${DNSASDIR}/$blast_run");
+  my $result_MEROPS = system("qsub -t 1-${filenum} -N ${PRJ}_MEROPS -q $qname -cwd -o $rundir/OUT/${PRJ}_MEROPS.out -e $rundir/OUT/${PRJ}_MEROPS.err -pe smp $ncpus_blast -v RUNDIR=$rundir,FSTDIR=$fastadir,DNSASDIR=$DNSASDIR,PRJ=$PRJ,ABLAST=$ablast,soft_diamond=$soft_diamond,soft_diamond_merops=$soft_diamond_merops,ncpus_insert=$ncpus_insert,qname=$qname,where=4 ${DNSASDIR}/$blast_run");
   print "MEROPS = $?\n";
   }
 
@@ -299,7 +315,7 @@ if (! $nm) {
 ###########
 say $np ? 'Not running PFAM' : 'FIRING PFAM!';
 if (! $np) {
-  my $result_PFAM = system("qsub -t 1-${filenum} -N ${PRJ}_pfam -q $qname -cwd -o $rundir/OUT/${PRJ}_PFAM.out -e $rundir/OUT/${PRJ}_PFAM.err -pe smp $ncpus_blast -v RUNDIR=$rundir,FSTDIR=$fastadir,DNSASDIR=$DNSASDIR,PRJ=$PRJ,ABLAST=$ablast,ncpus_insert=$ncpus_insert,qname=$qname,soft_transdecoder=$soft_transdecoder,soft_hmmscan=$soft_hmmscan,soft_pfam_db=$soft_pfam_db ${DNSASDIR}/$PFAM_run");
+  my $result_PFAM = system("qsub -t 1-${filenum} -N ${PRJ}_pfam -q $qname -cwd -o $rundir/OUT/${PRJ}_PFAM.out -e $rundir/OUT/${PRJ}_PFAM.err -pe smp $ncpus_blast -v RUNDIR=$rundir,FSTDIR=$fastadir,DNSASDIR=$DNSASDIR,PRJ=$PRJ,ABLAST=$ablast,ncpus_insert=$ncpus_insert,qname=$qname,soft_transdecoder=$soft_transdecoder,soft_hmmscan=$soft_hmmscan,soft_pfam_db=$soft_pfam_db,qname=$qname ${DNSASDIR}/$PFAM_run");
   print "PFAM = $?\n";
   }
 
@@ -309,7 +325,7 @@ if (! $np) {
 say $nr ? 'Not running RFAM' : 'FIRING RFAM!';
 if (! $nr) {
   if ($atype eq "nuc") {
-    my $result_RFAM = system("qsub -t 1-${filenum} -N ${PRJ}_rfam -q $qname -cwd -o $rundir/OUT/${PRJ}_RFAM.out -e $rundir/OUT/${PRJ}_RFAM.err -pe smp $ncpus_blast -v RUNDIR=$rundir,FSTDIR=$fastadir,DNSASDIR=$DNSASDIR,PRJ=$PRJ,ABLAST=$ablast,ncpus_insert=$ncpus_insert,qname=$qname,soft_transdecoder=$soft_transdecoder,soft_hmmscan=$soft_hmmscan,soft_rfam_db=$soft_rfam_db ${DNSASDIR}/$rfam_run");
+    my $result_RFAM = system("qsub -t 1-${filenum} -N ${PRJ}_rfam -q $qname -cwd -o $rundir/OUT/${PRJ}_RFAM.out -e $rundir/OUT/${PRJ}_RFAM.err -pe smp $ncpus_blast -v RUNDIR=$rundir,FSTDIR=$fastadir,DNSASDIR=$DNSASDIR,PRJ=$PRJ,ABLAST=$ablast,ncpus_insert=$ncpus_insert,qname=$qname,soft_transdecoder=$soft_transdecoder,soft_hmmscan=$soft_hmmscan,soft_rfam_db=$soft_rfam_db,qname=$qname ${DNSASDIR}/$rfam_run");
     }
   }
 
@@ -321,7 +337,7 @@ if (! $nr) {
 #############
 say $ni ? 'Not running interproscan' : 'FIRING Interproscan!';
 if (! $ni) {
-  my $result_IPRS = system("qsub -t 1-${filenum} -N ${PRJ}_IPRS -q $qname -cwd -o $rundir/OUT/${PRJ}_IPRS.out -e $rundir/OUT/${PRJ}_IPRS.err -pe smp $ncpus_blast -v RUNDIR=$rundir,FSTDIR=$fastadir,DNSASDIR=$DNSASDIR,PRJ=$PRJ,ABLAST=$ablast,ncpus_insert=$ncpus_insert,qname=$qname,soft_transdecoder=$soft_transdecoder,soft_interproscan=$soft_interproscan,soft_python3=$soft_python3 ${DNSASDIR}/$IPRS_run");
+  my $result_IPRS = system("qsub -t 1-${filenum} -N ${PRJ}_IPRS -q $qname -cwd -o $rundir/OUT/${PRJ}_IPRS.out -e $rundir/OUT/${PRJ}_IPRS.err -pe smp $ncpus_blast -v RUNDIR=$rundir,FSTDIR=$fastadir,DNSASDIR=$DNSASDIR,PRJ=$PRJ,ABLAST=$ablast,ncpus_insert=$ncpus_insert,qname=$qname,soft_transdecoder=$soft_transdecoder,soft_interproscan=$soft_interproscan,soft_python3=$soft_python3,qname=$qname ${DNSASDIR}/$IPRS_run");
   print "PFAM = $?\n";
   }
 

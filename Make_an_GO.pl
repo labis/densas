@@ -7,6 +7,10 @@ use Getopt::Long;
 use Cwd qw();
 use File::Basename;
 use POSIX;
+use 5.010;
+use warnings;
+use Term::ANSIColor qw(:constants);
+$Term::ANSIColor::AUTORESET = 1; # auto reset colors
 
 ####################
 #GET THE CONFIG FILE
@@ -15,6 +19,7 @@ use POSIX;
 my $name = basename($0);
 my ($real_path) = Cwd::abs_path($0)  =~ m/(.*)$name/i;
 require "$real_path/config.pl";
+
 # Define blast indentity
 my $pidentBL = 40;
 # Define blast e-Value
@@ -59,11 +64,11 @@ sub blastRES {
   my $blastRESDB = $dbh->selectall_arrayref("
 SELECT
   gi2uniprot.UniprotKB_acc
-FROM $PRJ\_blastRESULTS
+FROM EXP_$PRJ\_blastRESULTS
   INNER JOIN gi2uniprot
-    ON $PRJ\_blastRESULTS.seqGI = gi2uniprot.GI
-WHERE $PRJ\_blastRESULTS.pident >= $pidentBL
-AND $PRJ\_blastRESULTS.Seqname = '".$seqNAME_blst."'
+    ON EXP_$PRJ\_blastRESULTS.seqGI = gi2uniprot.GI
+WHERE EXP_$PRJ\_blastRESULTS.pident >= $pidentBL
+AND EXP_$PRJ\_blastRESULTS.Seqname = '".$seqNAME_blst."'
 ")
   or die "print unable to connect to the DB";
   

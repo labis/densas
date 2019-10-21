@@ -66,7 +66,7 @@ SELECT
   gi2uniprot.UniprotKB_acc
 FROM EXP_$PRJ\_blastRESULTS
   INNER JOIN gi2uniprot
-    ON EXP_$PRJ\_blastRESULTS.seqGI = gi2uniprot.GI
+    ON EXP_$PRJ\_blastRESULTS.seqACC = gi2uniprot.Accession
 WHERE EXP_$PRJ\_blastRESULTS.pident >= $pidentBL
 AND EXP_$PRJ\_blastRESULTS.Seqname = '".$seqNAME_blst."'
 ")
@@ -128,16 +128,16 @@ sub RFAM2GO {
   my $RFAM2GORESDB = $dbh->selectall_arrayref("
 SELECT
   RFAM2GO.GO_ID
-  FROM $PRJ\_RFAM
+  FROM EXP_$PRJ\_RFAM
   INNER JOIN RFAM2GO
-    ON $PRJ\_RFAM.rfam_acc = RFAM2GO.rfam_id
+    ON EXP_$PRJ\_RFAM.rfam_acc = RFAM2GO.rfam_id
   INNER JOIN term
     ON RFAM2GO.GO_ID = term.acc
-WHERE $PRJ\_RFAM.Seqname = '".$seqNAME_blst."'
-GROUP BY $PRJ\_RFAM.rfam_acc,
+WHERE EXP_$PRJ\_RFAM.Seqname = '".$seqNAME_blst."'
+GROUP BY EXP_$PRJ\_RFAM.rfam_acc,
          RFAM2GO.GO_ID,
          term.term_type
-ORDER BY $PRJ\_RFAM.Full_sequence
+ORDER BY EXP_$PRJ\_RFAM.Full_sequence
 ")
   or die "print unable to connect to the DB";
   
@@ -162,12 +162,12 @@ sub PFAM2GO {
   my $PFAM2GORESDB = $dbh->selectall_arrayref("
 SELECT
   pfamA2GO.go_id
-  FROM $PRJ\_PFAM
+  FROM EXP_$PRJ\_PFAM
   INNER JOIN pfamA2GO
-    ON $PRJ\_PFAM.pfamA_acc = pfamA2GO.pfamA_acc
+    ON EXP_$PRJ\_PFAM.pfamA_acc = pfamA2GO.pfamA_acc
   INNER JOIN term
     ON pfamA2GO.go_id = term.acc
-WHERE $PRJ\_PFAM.Seqname = '".$seqNAME_blst."'
+WHERE EXP_$PRJ\_PFAM.Seqname = '".$seqNAME_blst."'
 GROUP BY pfamA2GO.go_id
 ")
   or die "print unable to connect to the DB";
@@ -193,9 +193,9 @@ sub MRPS2GO {
   my $MRPS2GORESDB = $dbh->selectall_arrayref("
 SELECT
   MEROPS2GO.GO_ID
-FROM $PRJ\_MEROPS
+FROM EXP_$PRJ\_MEROPS
   INNER JOIN MEROPS_domain
-    ON $PRJ\_MEROPS.mernum = MEROPS_domain.mernum
+    ON EXP_$PRJ\_MEROPS.mernum = MEROPS_domain.mernum
   INNER JOIN (SELECT
       MEROPS2GO.code,
       MEROPS2GO.GO_ID
@@ -204,9 +204,9 @@ FROM $PRJ\_MEROPS
     ON MEROPS_domain.code = MEROPS2GO.code
   INNER JOIN term
     ON MEROPS2GO.GO_ID = term.acc
-WHERE $PRJ\_MEROPS.Seqname = '".$seqNAME_blst."'
-AND $PRJ\_MEROPS.evalue <= $evalueBL
-AND $PRJ\_MEROPS.pident >= $pidentBL
+WHERE EXP_$PRJ\_MEROPS.Seqname = '".$seqNAME_blst."'
+AND EXP_$PRJ\_MEROPS.evalue <= $evalueBL
+AND EXP_$PRJ\_MEROPS.pident >= $pidentBL
 GROUP BY MEROPS2GO.GO_ID
 ")
   or die "print unable to connect to the DB";

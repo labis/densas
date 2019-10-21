@@ -23,7 +23,7 @@ UNIPROT2GO	deprecated/Make_an_GO3.pl	74;"	s
 UNIPROT2GO	deprecated/Make_an_GO4.pl	77;"	s
 blastRES	Make_an_GO.pl	59;"	s
 blastRES	Make_an_GO_threads.pl	76;"	s
-blastRES	Make_an_desc.pl	64;"	s
+blastRES	Make_an_desc.pl	79;"	s
 blastRES	deprecated/Make_an_GO3.pl	40;"	s
 blastRES	deprecated/Make_an_GO4.pl	45;"	s
 doAnnotation	Make_an_GO_threads.pl	281;"	s
@@ -36,11 +36,11 @@ initThreads	GAF_threads.pl	43;"	s
 initThreads	Make_an_GO_threads.pl	66;"	s
 initThreads	new_threads.pl	27;"	s
 initThreads	test_threads.pl	43;"	s
-meropsRES	Make_an_desc.pl	115;"	s
-pfamRES	Make_an_desc.pl	177;"	s
-rfamRES	Make_an_desc.pl	147;"	s
+meropsRES	Make_an_desc.pl	129;"	s
+pfamRES	Make_an_desc.pl	191;"	s
+rfamRES	Make_an_desc.pl	161;"	s
 timing	Make_an_GO.pl	227;"	s
 timing	Make_an_GO_threads.pl	248;"	s
-timing	Make_an_desc.pl	47;"	s
+timing	Make_an_desc.pl	61;"	s
 timing	deprecated/Make_an_GO3.pl	211;"	s
 timing	deprecated/Make_an_GO4.pl	213;"	s

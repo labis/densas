@@ -35,7 +35,8 @@ my ($rundir,$ANNOT_file,$PRJ);
                 'evl=s' => \$evalueBL,
                 'nproc=s' => \$NProc,);
     if ((!$PRJ) || (!$rundir) || (!$ANNOT_file) || (!$pidentBL) || (!$evalueBL)) {
-    print "Some required arguments are missing.\nYou must use this as follow:\n$0 --prj PROJECT --rundir /PATH/TO/THE/RUNDIR/ --outfile ANNOT_file --idt [ BLAST SEQUENCE SIMILARITY ] --evl [ BLAST EVALUE ] \n";
+    print BOLD RED "Some required arguments are missing.\nYou must use this as follow:\n";
+    print BOLD MAGENTE "$0 --prj PROJECT --rundir /PATH/TO/THE/RUNDIR/ --outfile ANNOT_file --idt [ BLAST SEQUENCE SIMILARITY ] --evl [ BLAST EVALUE ] \n";
     exit 1
 }
 ################################
@@ -44,7 +45,7 @@ my ($rundir,$ANNOT_file,$PRJ);
 
 unless (-e "$rundir/$PRJ\_header.txt") {
   
-  die "Dammit Lab Goblins!! Something is terribly wrong!\nI could not find the Header file ($rundir/$PRJ\_header.txt).\nPlease check where is this file and try again\n";
+  die BOLD RED "Dammit Lab Goblins!! Something is terribly wrong!\nI could not find the Header file ($rundir/$PRJ\_header.txt).\nPlease check where is this file and try again\n";
 }
 
 # CONFIG VARIABLES
@@ -236,7 +237,8 @@ sub timing{
 
 # open FILE, $rundir or die $!; # open fasta file to search for GOs
 #Start looping the fasta file
-print "Step 1: Reading fasta file and searching for annotation\n";
+print BOLD GREEN "Step 1: ";
+print BOLD BLUE "Reading fasta file and searching for annotation\n";
 my @SUPER_GO; # create an array to store all the GO annotation
 my @UNIQ_GO; # create an array to store the unique GO annotation summarizing BLAST, RFAM, PFAM and MEROPS
 my @timing; #create a timing array for debug

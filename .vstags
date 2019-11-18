@@ -44,3 +44,4 @@ timing	Make_an_GO_threads.pl	248;"	s
 timing	Make_an_desc.pl	61;"	s
 timing	deprecated/Make_an_GO3.pl	211;"	s
 timing	deprecated/Make_an_GO4.pl	213;"	s
+unique	iprs_parser.pl	59;"	s

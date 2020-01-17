@@ -7,12 +7,12 @@ open(my $data, '<', $file) or die "Could not open '$file' $!\n";
  
 while (my $line = <$data>) {
   chomp $line;
-  my ($UniprotAcc, $UniprotId, $GI) = split( /\t/, $line );
+  my ($UniprotAcc, $UniprotId, $GI, $Acc) = split( /\t/, $line );
   #print $Uniprot."\t".$GI."\n";
-  my @GIs = split /;/, $GI;
-  foreach my $loopGI (@GIs)
+  my @Acc = split /;/, $Acc;
+  foreach my $loopAcc (@Acc)
   {
-    print "$UniprotId\t$UniprotAcc\t$loopGI\n";
+    print "$UniprotId\t$UniprotAcc\t$loopAcc\t$GI\n";
     }
   }
 close( $data );

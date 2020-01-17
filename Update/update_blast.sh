@@ -7,7 +7,7 @@
 #PBS -j oe
 #PBS -o update_BLAST.out
 
-BLASTDIR=/share/thunderstorm/db/blastdb/compressed/
+BLASTDIR=/state/partition1/DBs/
 SCRIPTSDIR=/home/mmbrand/DeNSAS/Update
 
 cd $BLASTDIR
@@ -21,26 +21,26 @@ fi
 ###################
 
 # rsync -auh --quiet ftp.ncbi.nlm.nih.gov::blast/db/FASTA/swissprot.gz ${BLASTDIR}/compressed/&
-# rsync -auh --quiet ftp.ncbi.nlm.nih.gov::blast/db/nr*.* ${BLASTDIR}/compressed/& 
+rsync -auh --quiet ftp.ncbi.nlm.nih.gov::blast/db/nr*.* ${BLASTDIR}/compressed/& 
 # rsync -auh --quiet ftp.ncbi.nlm.nih.gov::blast/db/FASTA/nr.gz ${BLASTDIR}/compressed/&
-# rsync -auh --quiet ftp.ncbi.nlm.nih.gov::blast/db/refseq_protein*.* ${BLASTDIR}/compressed/&
+rsync -auh --quiet ftp.ncbi.nlm.nih.gov::blast/db/refseq_protein*.* ${BLASTDIR}/compressed/&
 # rsync -auh --quiet ftp.ncbi.nlm.nih.gov::blast/db/taxdb.tar.gz ${BLASTDIR}/compressed/&
 # wget ftp://ftp.sanger.ac.uk/pub/MEROPS/current_release/pepunit.lib &
 # wget ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.hmm.gz &
 # wget ftp://ftp.ebi.ac.uk/pub/databases/Rfam/CURRENT/Rfam.seed.gz &
 # swissprot=`jobs -l | grep "swissprot" | awk '{print $2}'`
 # blastN=`jobs -l | grep "ftp.ncbi.nlm.nih.gov::blast/db/n" | awk '{print $2}'`
-# nr=`jobs -l | grep "nr.gz" | awk '{print $2}'`
-# refseq=`jobs -l | grep "refseq_protein" | awk '{print $2}'` &
+nr=`jobs -l | grep "nr.gz" | awk '{print $2}'`
+refseq=`jobs -l | grep "refseq_protein" | awk '{print $2}'` &
 # taxdb=`jobs -l | grep "taxdb.tar.gz" | awk '{print $2}'` &
 # merops=`jobs -l | grep "pepunit.lib" | awk '{print $2}'`  &
 # PFAM=`jobs -l | grep "Pfam-A.hmm.gz" | awk '{print $2}'` &
 # RFAM=`jobs -l | grep "Rfam.seed.gz" | awk '{print $2}'` &
 # wait $swissprot
-# wait $nr
+wait $nr &
 # wait $blastN
 # wait $est_others
-# wait $refseq &
+wait $refseq
 # wait $taxdb &
 # wait $merops &
 # wait $PFAM &
@@ -50,8 +50,8 @@ fi
 #MOVE MEROPS
 #############
 
-cd ${BLASTDIR}/compressed/
-date > ./updatetime.txt
+# cd ${BLASTDIR}/compressed/
+# date > ./updatetime.txt
 
 ######################
 #DISTRIBUTE ALL FILES

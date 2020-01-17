@@ -4,7 +4,7 @@
 #PBS -l walltime=350:00:00
 #PBS -q default
 #PBS -j oe
-#PBS -o OUT/insert_$PBS_ARRAYID.out
+#PBS -o OUT/insert_$SGE_TASK_ID.out
 
 #RUNDIR= Comes from the prep_annotation.pl
 #FSTDIR= Comes from the prep_annotation.pl

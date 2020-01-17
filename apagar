@@ -1,0 +1,15 @@
+filenum=7
+PRJ=IPRS
+qname=all.q
+RUNDIR="/home/mmbrand/Experimentos/testeipr"
+ncpus_blast=7
+fastadir="/home/mmbrand/Experimentos/testeipr/fasta"
+DNSASDIR="/home/mmbrand/Experimentos/DeNSAS/"
+ablast=prot
+ncpus_insert=2
+soft_transdecoder="/share/thunderstorm/programs/miniconda2/envs/DeNSAS/bin"
+soft_interproscan="/share/thunderstorm/programs/interproscan-5.35-74.0/interproscan.sh"
+IPRS_run="run_iprs_DeNSAS.sh"
+SGE_TASK_ID=2
+qsub -t $SGE_TASK_ID -N ${PRJ}_inMRPS -q $qname -cwd -o $RUNDIR/OUT/In_MERDiamon_$SGE_TASK_ID.out -e $RUNDIR/OUT/In_MERDiamon_$SGE_TASK_ID.err -pe smp $ncpus_insert -v RUNDIR=$RUNDIR,DNSASDIR=$DNSASDIR,PRJ=$PRJ,where=3 ${DNSASDIR}/run_insert_results_DeNSAS.sh
+qsub -t 1-${filenum} -N ${PRJ}_IPRS -q $qname -cwd -o $rundir/OUT/IPRS.out -e $rundir/OUT/IPRS_.err -pe smp $ncpus_blast -v RUNDIR=$rundir,FSTDIR=$fastadir,DNSASDIR=$DNSASDIR,PRJ=$PRJ,ABLAST=$ablast,ncpus_insert=$ncpus_insert,qname=$qname,soft_transdecoder=$soft_transdecoder,soft_interproscan=$soft_interproscan ${DNSASDIR}/$IPRS_run

@@ -40,7 +40,7 @@ my $dbh = DBI->connect("dbi:mysql:$database:$host:$port", "$user", "$pw",
 # set the value of your SQL query
 ##################################
 
-my $query = "INSERT INTO  $PRJ\_PFAM (seqname, pfamA_id, pfamA_acc, Best_domain, Full_sequence) VALUES (?,?,?,?,?)";
+my $query = "INSERT INTO  EXP_$PRJ\_PFAM (seqname, pfamA_id, pfamA_acc, Best_domain, Full_sequence) VALUES (?,?,?,?,?)";
 
 # prepare your statement for connecting to the database
 my $sth = $dbh->prepare($query);

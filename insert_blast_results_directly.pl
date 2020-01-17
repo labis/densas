@@ -41,7 +41,7 @@ my $dbh = DBI->connect("dbi:mysql:$database:$host:$port", "$user", "$pw",
 # set the value of your SQL query
 ##################################
 
-my $query = "INSERT INTO $PRJ\_blastRESULTS (Seqname, seqGI, seqACC, pident, evalue, bitscore) VALUES (?,?,?,?,?,?)";
+my $query = "INSERT INTO EXP_$PRJ\_blastRESULTS (Seqname, seqACC, pident, evalue, bitscore) VALUES (?,?,?,?,?)";
 
 # prepare your statement for connecting to the database
 my $sth = $dbh->prepare($query);
@@ -53,13 +53,11 @@ my $sth = $dbh->prepare($query);
 open (FILE, $infile);
 while (<FILE>) {
 chomp;
-my ($seqname, $res, $pident, $dumb, $dumb2, $dumb3, $dumb4, $dumb5, $dumb6, $dumb7, $evalue, $bitscore) = split("\t");
-my ($descarta1, $seqGI,$descarta2,$seqACC) = split(/\|/, $res);
-#print "$seqname\t$seqGI\t$seqACC\t$pident\t$evalue\t$bitscore\n";
-# print "$seqname\t$seqGI\t$seqACC\t$pident\t$evalue\t$bitscore\r";
-$sth->execute($seqname,$seqGI,$seqACC,$pident,$evalue,$bitscore) or die "Query failed: $!";
+my ($seqname, $seqACC, $pident, $dumb, $dumb2, $dumb3, $dumb4, $dumb5, $dumb6, $dumb7, $evalue, $bitscore) = split("\t");
 
-} # fecha looping no arquivo e insere
+$sth->execute($seqname,$seqACC,$pident,$evalue,$bitscore) or die "Query failed: $!";
+
+} # Close loop and insert into DB
 #
-print "All clear, closing here!";
+print "$infile - All clear, closing here!";
 $dbh->disconnect();

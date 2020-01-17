@@ -41,7 +41,7 @@ my $dbh = DBI->connect("dbi:mysql:$database:$host:$port", "$user", "$pw",
 # set the value of your SQL query
 ##################################
 
-my $query = "INSERT INTO  $PRJ\_MEROPS (Seqname, mernum , pident, evalue, bitscore) VALUES (?,?,?,?,?)";
+my $query = "INSERT INTO  EXP_$PRJ\_MEROPS (Seqname, mernum , pident, evalue, bitscore) VALUES (?,?,?,?,?)";
 
 # prepare your statement for connecting to the database
 my $sth = $dbh->prepare($query);

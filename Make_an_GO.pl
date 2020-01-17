@@ -7,6 +7,10 @@ use Getopt::Long;
 use Cwd qw();
 use File::Basename;
 use POSIX;
+use 5.010;
+use warnings;
+use Term::ANSIColor qw(:constants);
+$Term::ANSIColor::AUTORESET = 1; # auto reset colors
 
 ####################
 #GET THE CONFIG FILE
@@ -15,6 +19,7 @@ use POSIX;
 my $name = basename($0);
 my ($real_path) = Cwd::abs_path($0)  =~ m/(.*)$name/i;
 require "$real_path/config.pl";
+
 # Define blast indentity
 my $pidentBL = 40;
 # Define blast e-Value
@@ -30,7 +35,8 @@ my ($rundir,$ANNOT_file,$PRJ);
                 'evl=s' => \$evalueBL,
                 'nproc=s' => \$NProc,);
     if ((!$PRJ) || (!$rundir) || (!$ANNOT_file) || (!$pidentBL) || (!$evalueBL)) {
-    print "Some required arguments are missing.\nYou must use this as follow:\n$0 --prj PROJECT --rundir /PATH/TO/THE/RUNDIR/ --outfile ANNOT_file --idt [ BLAST SEQUENCE SIMILARITY ] --evl [ BLAST EVALUE ] \n";
+    print BOLD RED "Some required arguments are missing.\nYou must use this as follow:\n";
+    print BOLD MAGENTE "$0 --prj PROJECT --rundir /PATH/TO/THE/RUNDIR/ --outfile ANNOT_file --idt [ BLAST SEQUENCE SIMILARITY ] --evl [ BLAST EVALUE ] \n";
     exit 1
 }
 ################################
@@ -39,7 +45,7 @@ my ($rundir,$ANNOT_file,$PRJ);
 
 unless (-e "$rundir/$PRJ\_header.txt") {
   
-  die "Dammit Lab Goblins!! Something is terribly wrong!\nI could not find the Header file ($rundir/$PRJ\_header.txt).\nPlease check where is this file and try again\n";
+  die BOLD RED "Dammit Lab Goblins!! Something is terribly wrong!\nI could not find the Header file ($rundir/$PRJ\_header.txt).\nPlease check where is this file and try again\n";
 }
 
 # CONFIG VARIABLES
@@ -59,11 +65,11 @@ sub blastRES {
   my $blastRESDB = $dbh->selectall_arrayref("
 SELECT
   gi2uniprot.UniprotKB_acc
-FROM $PRJ\_blastRESULTS
+FROM EXP_$PRJ\_blastRESULTS
   INNER JOIN gi2uniprot
-    ON $PRJ\_blastRESULTS.seqGI = gi2uniprot.GI
-WHERE $PRJ\_blastRESULTS.pident >= $pidentBL
-AND $PRJ\_blastRESULTS.Seqname = '".$seqNAME_blst."'
+    ON EXP_$PRJ\_blastRESULTS.seqACC = gi2uniprot.Accession
+WHERE EXP_$PRJ\_blastRESULTS.pident >= $pidentBL
+AND EXP_$PRJ\_blastRESULTS.Seqname = '".$seqNAME_blst."'
 ")
   or die "print unable to connect to the DB";
   
@@ -123,16 +129,16 @@ sub RFAM2GO {
   my $RFAM2GORESDB = $dbh->selectall_arrayref("
 SELECT
   RFAM2GO.GO_ID
-  FROM $PRJ\_RFAM
+  FROM EXP_$PRJ\_RFAM
   INNER JOIN RFAM2GO
-    ON $PRJ\_RFAM.rfam_acc = RFAM2GO.rfam_id
+    ON EXP_$PRJ\_RFAM.rfam_acc = RFAM2GO.rfam_id
   INNER JOIN term
     ON RFAM2GO.GO_ID = term.acc
-WHERE $PRJ\_RFAM.Seqname = '".$seqNAME_blst."'
-GROUP BY $PRJ\_RFAM.rfam_acc,
+WHERE EXP_$PRJ\_RFAM.Seqname = '".$seqNAME_blst."'
+GROUP BY EXP_$PRJ\_RFAM.rfam_acc,
          RFAM2GO.GO_ID,
          term.term_type
-ORDER BY $PRJ\_RFAM.Full_sequence
+ORDER BY EXP_$PRJ\_RFAM.Full_sequence
 ")
   or die "print unable to connect to the DB";
   
@@ -157,12 +163,12 @@ sub PFAM2GO {
   my $PFAM2GORESDB = $dbh->selectall_arrayref("
 SELECT
   pfamA2GO.go_id
-  FROM $PRJ\_PFAM
+  FROM EXP_$PRJ\_PFAM
   INNER JOIN pfamA2GO
-    ON $PRJ\_PFAM.pfamA_acc = pfamA2GO.pfamA_acc
+    ON EXP_$PRJ\_PFAM.pfamA_acc = pfamA2GO.pfamA_acc
   INNER JOIN term
     ON pfamA2GO.go_id = term.acc
-WHERE $PRJ\_PFAM.Seqname = '".$seqNAME_blst."'
+WHERE EXP_$PRJ\_PFAM.Seqname = '".$seqNAME_blst."'
 GROUP BY pfamA2GO.go_id
 ")
   or die "print unable to connect to the DB";
@@ -188,9 +194,9 @@ sub MRPS2GO {
   my $MRPS2GORESDB = $dbh->selectall_arrayref("
 SELECT
   MEROPS2GO.GO_ID
-FROM $PRJ\_MEROPS
+FROM EXP_$PRJ\_MEROPS
   INNER JOIN MEROPS_domain
-    ON $PRJ\_MEROPS.mernum = MEROPS_domain.mernum
+    ON EXP_$PRJ\_MEROPS.mernum = MEROPS_domain.mernum
   INNER JOIN (SELECT
       MEROPS2GO.code,
       MEROPS2GO.GO_ID
@@ -199,9 +205,9 @@ FROM $PRJ\_MEROPS
     ON MEROPS_domain.code = MEROPS2GO.code
   INNER JOIN term
     ON MEROPS2GO.GO_ID = term.acc
-WHERE $PRJ\_MEROPS.Seqname = '".$seqNAME_blst."'
-AND $PRJ\_MEROPS.evalue <= $evalueBL
-AND $PRJ\_MEROPS.pident >= $pidentBL
+WHERE EXP_$PRJ\_MEROPS.Seqname = '".$seqNAME_blst."'
+AND EXP_$PRJ\_MEROPS.evalue <= $evalueBL
+AND EXP_$PRJ\_MEROPS.pident >= $pidentBL
 GROUP BY MEROPS2GO.GO_ID
 ")
   or die "print unable to connect to the DB";
@@ -231,7 +237,8 @@ sub timing{
 
 # open FILE, $rundir or die $!; # open fasta file to search for GOs
 #Start looping the fasta file
-print "Step 1: Reading fasta file and searching for annotation\n";
+print BOLD GREEN "Step 1: ";
+print BOLD BLUE "Reading fasta file and searching for annotation\n";
 my @SUPER_GO; # create an array to store all the GO annotation
 my @UNIQ_GO; # create an array to store the unique GO annotation summarizing BLAST, RFAM, PFAM and MEROPS
 my @timing; #create a timing array for debug

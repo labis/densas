@@ -5,6 +5,11 @@ use Getopt::Long;
 use Cwd qw();
 use File::Basename;
 use POSIX;
+use 5.010;
+use warnings;
+use Term::ANSIColor qw(:constants);
+$Term::ANSIColor::AUTORESET = 1; # auto reset colors
+
 
 ####################
 #GET THE CONFIG FILE
@@ -15,10 +20,19 @@ my ($real_path) = Cwd::abs_path($0)  =~ m/(.*)$name/i;
 require "$real_path/config.pl";
 
 
+# Define blast indentity
+my $pidentBL = 40;
+# Define blast e-Value
+my $evalueBL = 0.00000000001;
+
 my ($rundir,$PRJ);
-    GetOptions ('rundir=s' => \$rundir, 'prj=s' => \$PRJ);
+    GetOptions ('rundir=s' => \$rundir, 
+                'prj=s' => \$PRJ,
+                'idt=s' => \$pidentBL,
+                'evl=s' => \$evalueBL);
     if ((!$PRJ) || (!$rundir)) {
-    print "Some required arguments are missing.\nYou must use this as follow:\n$0 --prj PROJECT --rundir [ /PATH/TO/THE/RUNDIR/  ]\n";
+    print BOLD RED "Some required arguments are missing.\nYou must use this as follow:\n";
+    print BOLD MAGENTA "$0 --prj PROJECT --rundir /PATH/TO/THE/RUNDIR/ --idt [ BLAST SEQUENCE SIMILARITY ] --evl [ BLAST EVALUE ] \n";
     exit 1
 }
 
@@ -28,7 +42,7 @@ my ($rundir,$PRJ);
 
 unless (-e "$rundir/$PRJ\_header.txt") {
   
-  die "Dammit Lab Goblins!! Something is terribly wrong!\nI could not find the Header file in $rundir/$PRJ\_header.txt.\nPlease check where is this file and try again\n";
+  die BOLD RED "Dammit Lab Goblins!! Something is terribly wrong!\nI could not find the Header file in $rundir/EXP_$PRJ\_header.txt.\nPlease check where is this file and try again\n";
 }
 
 
@@ -43,15 +57,16 @@ my $runtime;
 ################
 # CONFIG TIMING
 ################
-my $strtTIME = time() / 60;
+my $strtTIME = time;
 sub timing{
   my ($seqN) = @_; # Get the uniprot ACC to consult
-  my $endtime = time() / 60;
-  my $difTIME = $endtime - $strtTIME;
-  if ($difTIME ne 0) {
+  my $endtime = time;
+  my $difTIME = ($endtime - $strtTIME);
+  
+  if ($difTIME > 60) {
     $runtime = floor($seqN / $difTIME);
      } else {
-    $runtime = ">60";
+    $runtime = "60";
   }
   return $runtime;
     }
@@ -72,18 +87,17 @@ SELECT
   gene_info.description,
   gene_info.symbol
 FROM (SELECT
-    $PRJ\_blastRESULTS.Seqname,
-    $PRJ\_blastRESULTS.seqGI,
-    $PRJ\_blastRESULTS.seqACC,
-    $PRJ\_blastRESULTS.pident,
-    $PRJ\_blastRESULTS.evalue,
-    $PRJ\_blastRESULTS.bitscore
-  FROM $PRJ\_blastRESULTS
-  WHERE $PRJ\_blastRESULTS.Seqname = '".$seqNAME_blst."' 
-  AND $PRJ\_blastRESULTS.pident >= 40
-  AND $PRJ\_blastRESULTS.evalue <= 1e-10
-  GROUP BY $PRJ\_blastRESULTS.seqGI,
-           $PRJ\_blastRESULTS.bitscore) SubQuery
+    EXP_$PRJ\_blastRESULTS.Seqname,
+    EXP_$PRJ\_blastRESULTS.seqACC,
+    EXP_$PRJ\_blastRESULTS.pident,
+    EXP_$PRJ\_blastRESULTS.evalue,
+    EXP_$PRJ\_blastRESULTS.bitscore
+  FROM EXP_$PRJ\_blastRESULTS
+  WHERE EXP_$PRJ\_blastRESULTS.Seqname = '".$seqNAME_blst."' 
+  AND EXP_$PRJ\_blastRESULTS.pident >= $pidentBL
+  AND EXP_$PRJ\_blastRESULTS.evalue <= $evalueBL
+  GROUP BY EXP_$PRJ\_blastRESULTS.seqACC,
+           EXP_$PRJ\_blastRESULTS.bitscore) SubQuery
   INNER JOIN gene2accession
     ON SubQuery.seqACC = gene2accession.protein_accession
   INNER JOIN gene_info
@@ -117,16 +131,16 @@ sub meropsRES {
   #Search the Blast results for seqName
   my $meropsRESDB = $dbh->selectall_arrayref("
 SELECT
-  $PRJ\_MEROPS.mernum,
+  EXP_$PRJ\_MEROPS.mernum,
   MEROPS_domain.code,
   MEROPS_domain.protein,
   MEROPS_domain.type
-FROM $PRJ\_MEROPS
+FROM EXP_$PRJ\_MEROPS
   INNER JOIN MEROPS_domain
-    ON $PRJ\_MEROPS.mernum = MEROPS_domain.mernum
-WHERE $PRJ\_MEROPS.Seqname = '".$seqNAME_mrps."'
+    ON EXP_$PRJ\_MEROPS.mernum = MEROPS_domain.mernum
+WHERE EXP_$PRJ\_MEROPS.Seqname = '".$seqNAME_mrps."'
 GROUP BY MEROPS_domain.code
-ORDER BY $PRJ\_MEROPS.pident DESC, $PRJ\_MEROPS.evalue
+ORDER BY EXP_$PRJ\_MEROPS.pident DESC, EXP_$PRJ\_MEROPS.evalue
 LIMIT 0, 1
 ")
   or die "print unable to connect to the DB";
@@ -151,12 +165,12 @@ sub rfamRES {
 SELECT
   RFAM.description,
   RFAM.rfam_id,
-  $PRJ\_RFAM.rfam_acc
-FROM $PRJ\_RFAM
+  EXP_$PRJ\_RFAM.rfam_acc
+FROM EXP_$PRJ\_RFAM
   INNER JOIN RFAM
-    ON $PRJ\_RFAM.rfam_id = RFAM.rfam_id
-WHERE $PRJ\_RFAM.Seqname = '".$seqNAME_rfam."'
-AND $PRJ\_RFAM.Full_sequence <= 0.00000000001
+    ON EXP_$PRJ\_RFAM.rfam_id = RFAM.rfam_id
+WHERE EXP_$PRJ\_RFAM.Seqname = '".$seqNAME_rfam."'
+AND EXP_$PRJ\_RFAM.Full_sequence <= 0.00000000001
 LIMIT 0, 1
 ")
   or die "print unable to connect to the DB";
@@ -180,14 +194,14 @@ sub pfamRES {
   my $pfamRESDB = $dbh->selectall_arrayref("
 SELECT
   pfamA.description,
-  $PRJ\_PFAM.pfamA_id,
-  $PRJ\_PFAM.pfamA_acc
-FROM $PRJ\_PFAM
+  EXP_$PRJ\_PFAM.pfamA_id,
+  EXP_$PRJ\_PFAM.pfamA_acc
+FROM EXP_$PRJ\_PFAM
   INNER JOIN pfamA
-    ON $PRJ\_PFAM.pfamA_id = pfamA.pfamA_id
-WHERE $PRJ\_PFAM.Seqname = '".$seqNAME_pfam."'
-AND $PRJ\_PFAM.Best_domain <= 0.00000000001
-ORDER BY $PRJ\_PFAM.Full_sequence
+    ON EXP_$PRJ\_PFAM.pfamA_id = pfamA.pfamA_id
+WHERE EXP_$PRJ\_PFAM.Seqname = '".$seqNAME_pfam."'
+AND EXP_$PRJ\_PFAM.Best_domain <= 0.00000000001
+ORDER BY EXP_$PRJ\_PFAM.Full_sequence
 LIMIT 0, 1
 ")
   or die "print unable to connect to the DB";
@@ -206,6 +220,15 @@ foreach my $row (@$pfamRESDB) {
 ###END pfamRES
 
 ############################################# Routines END
+
+# Count the number of lines on the header file
+
+open FILECOUNT, "$rundir/$PRJ\_header.txt" or die $!;
+my $lines = 0;
+$lines++ while <FILECOUNT>;
+close(FILECOUNT);
+
+#Open file header for looping
 
 open FILE, "$rundir/$PRJ\_header.txt" or die $!;
 open(my $descFILE, '>', "$rundir/$PRJ\_DESC.txt");
@@ -239,7 +262,9 @@ while (my $fstHEADER = <FILE>) {
     print $descFILE "\n"; #new line
     $seqNUM ++; #COUNT SEQS
     #print some statistics
-    print "Running at ",timing($seqNUM)," sequences per minute\r";
+    my $seqDONE = floor(( $seqNUM / $lines) * 100);
+    my $seqETA = floor(( $lines - $seqNUM ) / timing($seqNUM));
+    print BOLD BLUE "  $seqDONE% done running at ",timing($seqNUM)," sequences per minute, need more $seqETA minutes to finish         \r";
 } #close while loop
 close(FILE);
 close $descFILE;
@@ -247,4 +272,4 @@ close $descFILE;
 my $finalTIME = time() / 60;
 my $finaltotTIME = $finalTIME - $strtTIME;
 my $avrgTIME = $seqNUM / $finaltotTIME;
-print "All done running in ",$finaltotTIME,"  minutes averaging ".$avrgTIME." sequences per minute\n";
+print BOLD BLUE "All done running in ",$finaltotTIME,"  minutes averaging ".$avrgTIME." sequences per minute\n";

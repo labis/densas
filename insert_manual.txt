@@ -1,4 +1,4 @@
-PRJ=EpiP
+PRJ=Epip
 cd $PRJ/blastXML
 cat *.db > ${PRJ}_blastRESULTS.txt
 mysqlimport -uannotate -p -h143.106.4.169 --local --columns "Seqname,seqGI,seqACC,pident,evalue,bitscore" --use-threads=30 --delete -v densas ${PRJ}_blastRESULTS.txt

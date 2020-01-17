@@ -1,19 +1,16 @@
 #!/bin/bash
-#PBS -m abe
-#PBS -N PFAM_${PRJ}
-#PBS -l nodes=1:ppn=4
-#PBS -l walltime=900:00:00
-#PBS -q default
-#PBS -j oe
+NP=$NSLOTS
+#All those variables comes from prep_annotation_DeNSAS.pl
+#RUNDIR
+#FSTDIR
+#PRJ
+#DNSASDIR
+#ABLAST
+#qname
+#ncpus_insert
+#soft_hmmscan
 
-NP=$(wc -l $PBS_NODEFILE | awk '{print $1}')
-#RUNDIR= Comes from the prep_annotation.pl
-#FSTDIR= Comes from the prep_annotation.pl
-#PRJ= Comes from the prep_annotation.pl
-#DNSASDIR= Comes from the prep_annotation.pl
-#ABLAST= Comes from the prep_annotation.pl
-
-TMPDIR="/state/partition1/PFAM_${PRJ}_$PBS_ARRAYID"
+TMPDIR="/state/partition1/PFAM_${PRJ}_$SGE_TASK_ID"
 PEPDIR=$RUNDIR/PEP
 PFAMDIR="$RUNDIR/PFAM"
 
@@ -42,13 +39,6 @@ if [ ! -d "$PFAMDIR" ]; then
     mkdir $PFAMDIR
 fi
 
-if [ ! -d "/state/partition1/db/pfam/" ]; then
-    mkdir /state/partition1/db/pfam/
-fi
-
-echo "Sync new database"
-rsync -vru /share/thunderstorm/db/pfam/Pfam-A* /state/partition1/db/pfam/
-
 echo "Let's get started
 Check all the folders that will be used:
 Running dir = $RUNDIR
@@ -60,7 +50,7 @@ Peptide dir $RUNDIR/PEP
 PFAMDIR = $RUNDIR/PFAM
 
 Send to queue by
-qsub ${DNSASDIR}/run_insert_results_DeNSAS.sh -t $PBS_ARRAYID -N ${PRJ}_inPFAM -d ./ -o $RUNDIR/OUT/Insert_PFAM_$PBS_ARRAYID.out -v 'RUNDIR=$RUNDIR, DNSASDIR=$DNSASDIR, PRJ=$PRJ, where=4'
+qsub -t $SGE_TASK_ID -N ${PRJ}_inPFAM -q $qname -cwd -o $RUNDIR/OUT/In_PFAM_$SGE_TASK_ID.out -pe smp $ncpus_insert -v RUNDIR=$RUNDIR,DNSASDIR=$DNSASDIR,PRJ=$PRJ,where=4 ${DNSASDIR}/run_insert_results_DeNSAS.sh
 "
 
 ###############################################
@@ -70,41 +60,39 @@ qsub ${DNSASDIR}/run_insert_results_DeNSAS.sh -t $PBS_ARRAYID -N ${PRJ}_inPFAM -
 ###############################################
 
 cd $TMPDIR
-cp $FSTDIR/${PRJ}_$PBS_ARRAYID.fasta ./
+cp $FSTDIR/${PRJ}_$SGE_TASK_ID.fasta ./
 if [ $ABLAST = "nuc" ]; then
-/share/programs/TransDecoder-2.0.1/TransDecoder.LongOrfs -t ${PRJ}_$PBS_ARRAYID.fasta -m 50
-/share/programs/TransDecoder-2.0.1/TransDecoder.Predict -t ${PRJ}_$PBS_ARRAYID.fasta
-runfile=${PRJ}_$PBS_ARRAYID.fasta.transdecoder_dir/longest_orfs.pep
+$soft_transdecoder/TransDecoder.LongOrfs -t ${PRJ}_$SGE_TASK_ID.fasta -m 50
+$soft_transdecoder/TransDecoder.Predict -t ${PRJ}_$SGE_TASK_ID.fasta
+runfile=${PRJ}_$SGE_TASK_ID.fasta.transdecoder_dir/longest_orfs.pep
 else
-runfile=${PRJ}_$PBS_ARRAYID.fasta
+runfile=${PRJ}_$SGE_TASK_ID.fasta
 fi
 ##############################################
 #   STEP TWO:
 #   RUN PFAM
 ##############################################
 
-~/programs/hmmer/binaries/hmmscan -o temp_${PRJ}_hmm --tblout ${PRJ}_${PBS_ARRAYID}_pfam.tblout --noali --cpu $NP /state/partition1/db/pfam/Pfam-A.hmm  $runfile
-perl ${DNSASDIR}/hmm_parser.pl ${PRJ}_${PBS_ARRAYID}_pfam.tblout > $PFAMDIR/${PRJ}_PFAM_$PBS_ARRAYID.tsv
+$soft_hmmscan -o temp_${PRJ}_hmm --tblout ${PRJ}_${SGE_TASK_ID}_pfam.tblout --noali --cpu $NP $soft_pfam_db  $runfile
+perl ${DNSASDIR}/hmm_parser.pl ${PRJ}_${SGE_TASK_ID}_pfam.tblout > $PFAMDIR/${PRJ}_PFAM_$SGE_TASK_ID.tsv
 
 ##############################################
 #   STEP THREE:
 #   Insert on DB
 ##############################################
 
-#/share/thunderstorm/perl5/perls/perl-5.18.1/bin/perl ${DNSASDIR}/insert_pfam_results.pl --prj $PRJ --infile $PFAMDIR/${PRJ}_PFAM_$PBS_ARRAYID.tsv
-qsub ${DNSASDIR}/run_insert_results_DeNSAS.sh -t $PBS_ARRAYID -N ${PRJ}_inPFAM -d ./ -o $RUNDIR/OUT/In_PFAM_$PBS_ARRAYID.out -v "RUNDIR=$RUNDIR, DNSASDIR=$DNSASDIR, PRJ=$PRJ, where=4"
+echo "GOING TO DeNSASdb\n"
+qsub -t $SGE_TASK_ID -N ${PRJ}_inPFAM -q $qname -o $RUNDIR/OUT/In_PFAM_$SGE_TASK_ID.out -pe smp $ncpus_insert -v RUNDIR=$RUNDIR,DNSASDIR=$DNSASDIR,PRJ=$PRJ,where=4 ${DNSASDIR}/run_insert_results_DeNSAS.sh
 
 ##############################################
 #   STEP FOUR:
 #   CLEAN UP
 ##############################################
 if [ $ABLAST = "nuc" ]; then
-cp ${PRJ}_$PBS_ARRAYID.fasta.transdecoder_dir/longest_orfs.pep $PFAMDIR/${PRJ}_PFAM_$PBS_ARRAYID.pep
-fi
-zip -rm ${PRJ}_${PBS_ARRAYID}_pfam.tblout.zip ${PRJ}_${PBS_ARRAYID}_pfam.tblout
-# tar -zcvpf ${PRJ}_$PBS_ARRAYID.fasta_dir.tar.gz ${PRJ}_$PBS_ARRAYID.fasta_dir/ --remove-files
+mv ${PRJ}_$SGE_TASK_ID.fasta.transdecoder_dir/longest_orfs.pep $PEPDIR/${PRJ}_PFAM_$SGE_TASK_ID.pep
 mv $PFAMDIR/*.pep $PEPDIR/
-mv *.tar.gz $PFAMDIR
+fi
+zip -rm ${PRJ}_${SGE_TASK_ID}_pfam.tblout.zip ${PRJ}_${SGE_TASK_ID}_pfam.tblout
 mv *.zip $PFAMDIR
 cd $PFAMDIR
 rm -rf $TMPDIR

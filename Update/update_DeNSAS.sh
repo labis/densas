@@ -7,7 +7,7 @@ DBSERVER="143.106.4.87"
 DBNAME="densas"
 DBUSER="annotate"
 DBPASS="b10ine0!"
-DensasDIR="/home/mmbrand/DeNSAS"
+DensasDIR="/home/mmbrand/Experimentos/DeNSAS"
 #Deal with all directories
 #Check if $DOWNLDATA exists, if not create it
 if [ ! -d "$DOWNLDATA" ]; then
@@ -28,8 +28,8 @@ cd $DOWNLDATA
 #wget -N http://densas.bioinfoguy.net/update/up_URL.txt
 
 #start the downloading
-echo $(date -u) "Start the downloading"
-aria2c -c -i $DensasDIR/Update/up_URL.txt -d $DOWNLDATA -s 10 -j 10 -x 2 -V true
+#echo $(date -u) "Start the downloading"
+#aria2c -c -i $DensasDIR/Update/up_URL.txt -d $DOWNLDATA -s 10 -j 10 -x 2 -V true
 
 #Deal with GO assocdb file
 #Move downloaded file

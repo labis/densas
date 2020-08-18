@@ -14,19 +14,18 @@ THUNDERSRV=thunder
 ##############
 #SET PROGRAMS
 ##############
-
-soft_makeblastdb="/share/thunderstorm/programs/miniconda2/envs/DeNSAS/bin/makeblastdb"
-soft_blastdbcmd="/share/thunderstorm/programs/miniconda2/envs/DeNSAS/bin/blastdbcmd"
-soft_diamond="/share/thunderstorm/programs/miniconda2/envs/DeNSAS/bin/diamond"
-soft_hmmpress="/share/thunderstorm/programs/miniconda2/envs/DeNSAS/bin/hmmpress"
-soft_hmmbuild="/share/thunderstorm/programs/miniconda2/envs/DeNSAS/bin/hmmbuild"
+soft_makeblastdb="/home/mmbrand/miniconda2/bin/makeblastdb"
+soft_blastdbcmd="/home/mmbrand/miniconda2/bin/blastdbcmd"
+soft_diamond="/home/mmbrand/miniconda2/bin/diamond"
+soft_hmmpress="/home/mmbrand/miniconda2/bin/hmmpress"
+soft_hmmbuild="/home/mmbrand/miniconda2/bin/hmmbuild"
 
 ############
 #CLEAN DIRS
 ############
 
-# rm -rf ${COMPBLSTDIR}
-# rm -rf ${BLSTDIR}
+rm -rf ${COMPBLSTDIR}
+rm -rf ${BLSTDIR}
 
 if [ ! -d "${DBDIR}" ]; then
     mkdir  ${DBDIR}
@@ -66,7 +65,7 @@ done
 #DIAMOND FILES
 ###############
 gunzip pepunit.lib.gz &
-# gunzip nr.gz &
+gunzip nr.gz &
 # gunzip swissprot.gz &
 # gunzip uniref90.fasta.gz &
 wait
@@ -142,5 +141,3 @@ rm -rf Rfam.seed Rfam.seed.hmm
 find ${DBDIR} -maxdepth 1 -type f -print0 | xargs -0r rm -rf
 rm -rf ${COMPBLSTDIR}/
 date > update_time.txt
-
-

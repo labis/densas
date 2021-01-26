@@ -14,11 +14,11 @@ THUNDERSRV=thunder
 ##############
 #SET PROGRAMS
 ##############
-soft_makeblastdb="/home/mmbrand/miniconda2/bin/makeblastdb"
-soft_blastdbcmd="/home/mmbrand/miniconda2/bin/blastdbcmd"
-soft_diamond="/home/mmbrand/miniconda2/bin/diamond"
-soft_hmmpress="/home/mmbrand/miniconda2/bin/hmmpress"
-soft_hmmbuild="/home/mmbrand/miniconda2/bin/hmmbuild"
+soft_makeblastdb="/home/mmbrand/miniconda3/bin/makeblastdb"
+soft_blastdbcmd="/home/mmbrand/miniconda3/bin/blastdbcmd"
+soft_diamond="/home/mmbrand/miniconda3/bin/diamond"
+soft_hmmpress="/home/mmbrand/miniconda3/bin/hmmpress"
+soft_hmmbuild="/home/mmbrand/miniconda3/bin/hmmbuild"
 
 ############
 #CLEAN DIRS
@@ -43,13 +43,13 @@ fi
 #COPY FILES TO LOCAL
 #####################
 
-rsync -ruth --exclude md5 -e ssh ${THUNDERSRV}:$DBRAW $DBDIR
+rsync -ruth --exclude *.md5 -e ssh ${THUNDERSRV}:$DBRAW $COMPBLSTDIR
 
 ##################
 #UNCOMPRESS FILES
 ##################
 
-cd $DBDIR
+cd $COMPBLSTDIR
 
 ######################
 #BLAST FILES
@@ -58,17 +58,17 @@ cd $DBDIR
 for filename in $COMPBLSTDIR/*.tar.gz
 do
 tar -zxvf $filename -C ${BLSTDIR}/
-rm -rf $filename
+#rm -rf $filename
 done
 
 ###############
 #DIAMOND FILES
 ###############
-gunzip pepunit.lib.gz &
-gunzip nr.gz &
+# gunzip pepunit.lib.gz -d $DBDIR &
+# gunzip nr.gz -d $DBDIR &
 # gunzip swissprot.gz &
 # gunzip uniref90.fasta.gz &
-wait
+# wait
 
 #################################
 #TREAT FILES TO CREATE DATABASES
@@ -81,7 +81,7 @@ rm -rf pepunit.lib
 #CREATE BLAST DATABASES
 ########################
 
-$soft_makeblastdb -in pepunit_limpa3.lib -dbtype 'prot' -title 'MEROPS $TODAY' -out $BLSTDIR/MEROPS &
+# $soft_makeblastdb -in pepunit_limpa3.lib -dbtype 'prot' -title 'MEROPS $TODAY' -out $BLSTDIR/MEROPS &
 $soft_blastdbcmd -db $BLSTDIR/refseq_protein -dbtype prot -out refseq_protein.fasta -entry all &
 wait
 
@@ -92,9 +92,9 @@ wait
 
 $soft_diamond makedb --in pepunit_limpa3.lib -d $BLSTDIR/MEROPS_diamond -p $NSLOTS
 rm -rf pepunit_limpa3.lib
-$soft_diamond makedb --in uniref90.fasta.gz -d $BLSTDIR/uniref90_diamond -p $NSLOTS
-rm -rf uniref90.fasta.gz
-$soft_diamond makedb --in nr.gz -d $BLSTDIR/nr_diamond --taxonmap prot.accession2taxid.gz --taxonnodes taxdmp.zip -p $NSLOTS
+# $soft_diamond makedb --in uniref90.fasta.gz -d $BLSTDIR/uniref90_diamond -p $NSLOTS
+# rm -rf uniref90.fasta.gz
+$soft_diamond makedb --in $COMPBLSTDIR/nr.gz -d $BLSTDIR/nr_diamond --taxonmap prot.accession2taxid.gz --taxonnodes taxdmp.zip -p $NSLOTS
 rm -rf nr.gz
 $soft_diamond makedb --in refseq_protein.fasta --taxonmap prot.accession2taxid.gz --taxonnodes taxdmp.zip -d $BLSTDIR/refseq_DIAMOND -p $NSLOTS
 rm -rf refseq_protein.fasta

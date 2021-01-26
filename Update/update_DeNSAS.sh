@@ -1,13 +1,13 @@
 #!/bin/bash
 
 #Set all variables
-DOWNLDATA="/home/mmbrand/Downloads/DeNSAS"
+DOWNLDATA="/share/thunderstorm2/densas_db"
 ASSDBDIR="${DOWNLDATA}/assocdb/"
 DBSERVER="143.106.4.87"
 DBNAME="densas"
 DBUSER="annotate"
 DBPASS="b10ine0!"
-DensasDIR="/home/mmbrand/Experimentos/DeNSAS"
+DensasDIR="/home/mmbrand/Experimentos/densas"
 #Deal with all directories
 #Check if $DOWNLDATA exists, if not create it
 if [ ! -d "$DOWNLDATA" ]; then

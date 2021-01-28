@@ -2,6 +2,7 @@
 
 #Set all variables
 DOWNLDATA="/share/thunderstorm2/densas_db"
+DBRAW="${DOWNLDATA}/raw/"
 ASSDBDIR="${DOWNLDATA}/assocdb/"
 DBSERVER="143.106.4.87"
 DBNAME="densas"
@@ -12,6 +13,11 @@ DensasDIR="/home/mmbrand/Experimentos/densas"
 #Check if $DOWNLDATA exists, if not create it
 if [ ! -d "$DOWNLDATA" ]; then
     mkdir $DOWNLDATA
+fi
+
+#Check if $DBRAW exists, if not create it
+if [ ! -d "$DBRAW" ]; then
+    mkdir $DBRAW
 fi
 
 #GO assocdb file
@@ -28,8 +34,17 @@ cd $DOWNLDATA
 #wget -N http://densas.bioinfoguy.net/update/up_URL.txt
 
 #start the downloading
-#echo $(date -u) "Start the downloading"
-#aria2c -c -i $DensasDIR/Update/up_URL.txt -d $DOWNLDATA -s 10 -j 10 -x 2 -V true
+echo $(date -u) "Start the downloading"
+aria2c -c -i $DensasDIR/Update/up_URL.txt -d $DOWNLDATA -s 10 -j 10 -x 2 -V true &
+rsync -auh --quiet --exclude md5 ftp.ncbi.nlm.nih.gov::blast/db/refseq_protein*.* ${DBRAW} &
+wait
+
+#arrange all files to be copied during up_local_databases.sh
+mv nr.gz ${DBRAW}
+mv pepunit.lib ${DBRAW}
+gzip ${DBRAW}/pepunit.lib
+mv Pfam-A.hmm.gz ${DBRAW}
+mv Rfam.seed.gz ${DBRAW}
 
 #Deal with GO assocdb file
 #Move downloaded file
@@ -180,18 +195,20 @@ mysqlimport -u$DBUSER -p$DBPASS -h $DBSERVER --use-threads=10 --local --delete -
 ########
 
 echo $(date -u) "Update the gi2tax database"
-zcat gi_taxid_prot.dmp.gz > gi2tax.txt &
-zcat gi_taxid_nucl.dmp.gz >> gi2tax.txt &
+zcat nucl_gb.accession2taxid.gz > gi2tax.txt &
+zcat prot.accession2taxid.gz >> gi2tax.txt &
 wait
 mysqlimport -u$DBUSER -p$DBPASS -h $DBSERVER --use-threads=10 --local --delete -d densas $DOWNLDATA/gi2tax.txt
+rm -rf $DOWNLDATA/gi2tax.txt
 
 ############
 #gi2uniprot
 ############
 
 echo $(date -u) "Update the gi2uniprot database"
+gunzip idmapping.tb.gz
 perl $DensasDIR/Update/Create_gi2uniprot2.pl $DOWNLDATA/idmapping.tb > gi2uniprot.txt
-mysqlimport -u$DBUSER -p$DBPASS -h $DBSERVER --use-threads=10 --local --delete --columns "UniprotKB_acc,UniprotKB_id,Accession,GI" -d densas $DOWNLDATA/gi2uniprot.txt
+mysqlimport -u$DBUSER -p$DBPASS -h $DBSERVER --use-threads=30 --local --delete --columns "UniprotKB_acc,UniprotKB_id,Accession,GI" -d densas $DOWNLDATA/gi2uniprot.txt
 
 ##########
 #pfamA2GO

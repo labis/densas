@@ -6,7 +6,7 @@ TODAY=`date +"%d-%m-%Y"`
 #########
 
 DBDIR="/state/partition1/DBs/"
-DBRAW="/home/mmbrand/Downloads/DeNSAS/"
+DBRAW="/share/thunderstorm2/densas_db/raw/"
 BLSTDIR=$DBDIR/blastdb
 COMPBLSTDIR=$DBDIR/compressed
 THUNDERSRV=thunder
@@ -14,11 +14,11 @@ THUNDERSRV=thunder
 ##############
 #SET PROGRAMS
 ##############
-soft_makeblastdb="/home/mmbrand/miniconda3/bin/makeblastdb"
-soft_blastdbcmd="/home/mmbrand/miniconda3/bin/blastdbcmd"
-soft_diamond="/home/mmbrand/miniconda3/bin/diamond"
-soft_hmmpress="/home/mmbrand/miniconda3/bin/hmmpress"
-soft_hmmbuild="/home/mmbrand/miniconda3/bin/hmmbuild"
+soft_makeblastdb="/share/thunderstorm/programs/miniconda3/bin/makeblastdb"
+soft_blastdbcmd="/share/thunderstorm/programs/miniconda3/bin/blastdbcmd"
+soft_diamond="/share/thunderstorm/programs/miniconda3/bin/diamond"
+soft_hmmpress="/share/thunderstorm/programs/miniconda3/bin/hmmpress"
+soft_hmmbuild="/share/thunderstorm/programs/miniconda3/bin/hmmbuild"
 
 ############
 #CLEAN DIRS
@@ -65,10 +65,10 @@ done
 #DIAMOND FILES
 ###############
 # gunzip pepunit.lib.gz -d $DBDIR &
-# gunzip nr.gz -d $DBDIR &
+gunzip nr.gz -d $DBDIR &
 # gunzip swissprot.gz &
 # gunzip uniref90.fasta.gz &
-# wait
+wait
 
 #################################
 #TREAT FILES TO CREATE DATABASES
@@ -104,11 +104,14 @@ rm -rf refseq_protein.fasta
 #CREATE PFAM DATABASES
 #######################
 
+# Create directory
+
 if [ -d "${DBDIR}/pfam" ]; then
     rm -rf  ${DBDIR}/pfam/*
     else
     mkdir  ${DBDIR}/pfam/
 fi
+
 gunzip -c Pfam-A.hmm.gz > ${DBDIR}/pfam/Pfam-A.hmm
 rm -rf Pfam-A.hmm.gz
 cd ${DBDIR}/pfam/
@@ -125,12 +128,12 @@ if [ -d "${DBDIR}/rfam" ]; then
     mkdir  ${DBDIR}/rfam/
 fi
 
-cd $DBDIR
+cd $COMPBLSTDIR
 
 gunzip -c Rfam.seed.gz > ${DBDIR}/rfam/Rfam.seed
 rm -rf Rfam.seed.gz
 cd ${DBDIR}/rfam/
-$soft_hmmbuild Rfam.seed.hmm Rfam.seed
+$soft_hmmbuild --cpu $NSLOTS Rfam.seed.hmm Rfam.seed
 $soft_hmmpress Rfam.seed.hmm
 rm -rf Rfam.seed Rfam.seed.hmm
 

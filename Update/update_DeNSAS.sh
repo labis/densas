@@ -45,6 +45,8 @@ mv pepunit.lib ${DBRAW}
 gzip ${DBRAW}/pepunit.lib
 mv Pfam-A.hmm.gz ${DBRAW}
 mv Rfam.seed.gz ${DBRAW}
+mv taxdmp.zip ${DBRAW}
+mv prot.accession2taxid.gz ${DBRAW}
 
 #Deal with GO assocdb file
 #Move downloaded file
@@ -128,7 +130,17 @@ mysqlimport -u$DBUSER -p$DBPASS -h $DBSERVER --use-threads=10 --local --ignore-l
 
 echo $(date -u) "Update the gene_association database"
 zcat goa_uniprot_all.gaf.gz | cut -f 2,5,7,9 > gene_association.txt
-mysqlimport -u$DBUSER -p$DBPASS -h $DBSERVER --use-threads=10 --local --delete --columns "Object_ID,GO_ID,Evidence,GO_aspect" -d densas $DOWNLDATA/gene_association.txt
+#To avoid MySQL exec_time error / Split into 10 smaller chunks
+split -n 10 -d gene_association_full.txt gene_association &
+mysql -u$DBUSER -p$DBPASS -h $DBSERVER densas -e "TRUNCATE gene_association" &
+wait
+rm -rf gene_association.txt
+for gafile in gene_association0*
+ do
+ echo "Fazendo $gafile"
+ mv $gafile gene_association.txt
+ mysqlimport -u$DBUSER -p$DBPASS -h $DBSERVER --use-threads=30 --local --columns "Object_ID,GO_ID,Evidence,GO_aspect" -d densas $DOWNLDATA/gene_association.txt
+ done
 
 ###########
 #gene_info
@@ -195,10 +207,20 @@ mysqlimport -u$DBUSER -p$DBPASS -h $DBSERVER --use-threads=10 --local --delete -
 ########
 
 echo $(date -u) "Update the gi2tax database"
-zcat nucl_gb.accession2taxid.gz > gi2tax.txt &
-zcat prot.accession2taxid.gz >> gi2tax.txt &
+zcat nucl_gb.accession2taxid.gz > gi2tax_full.txt &
+zcat prot.accession2taxid.gz >> gi2tax_full.txt &
 wait
-mysqlimport -u$DBUSER -p$DBPASS -h $DBSERVER --use-threads=10 --local --delete -d densas $DOWNLDATA/gi2tax.txt
+
+split -n 20 -d gi2tax_full.txt gi2tax &
+mysql -u$DBUSER -p$DBPASS -h $DBSERVER densas -e "TRUNCATE gi2tax" &
+wait
+rm -rf gi2tax.txt
+for gafile in gi2tax0*
+ do
+ echo "Fazendo $gafile"
+ mv $gafile gi2tax.txt
+ mysqlimport -u$DBUSER -p$DBPASS -h $DBSERVER --use-threads=30 --local -d densas $DOWNLDATA/gi2tax.txt
+ done
 rm -rf $DOWNLDATA/gi2tax.txt
 
 ############

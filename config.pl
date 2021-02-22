@@ -27,7 +27,7 @@ $PRJ = "DENSAS";
 $blast_run = "run_blast_DeNSAS.sh";
 $rfam_run = "run_Rfam_DeNSAS.sh";
 $PFAM_run = "run_Pfam_DeNSAS.sh";
-$DNSASDIR = "/home/mmbrand/Experimentos/DeNSAS/";
+$DNSASDIR = "/home/mmbrand/Experimentos/densas/";
 $IPRS_run = "run_iprs_DeNSAS.sh";
 
 #######################
@@ -44,12 +44,12 @@ $qname="all.q";
 #########################
 
 $soft_aria="/usr/bin/aria2c";
-$soft_transdecoder="/share/thunderstorm/programs/miniconda2/envs/DeNSAS/bin";
-$soft_hmmscan="/share/thunderstorm/programs/miniconda2/envs/DeNSAS/bin/hmmscan";
-$soft_diamond="/share/thunderstorm/programs/miniconda2/envs/DeNSAS/bin/diamond";
+$soft_transdecoder="/share/thunderstorm/programs/miniconda3/bin";
+$soft_hmmscan="/share/thunderstorm/programs/miniconda3/bin/hmmscan";
+$soft_diamond="/share/thunderstorm/programs/miniconda3/bin/diamond";
 $soft_pfam_db="/state/partition1/DBs/pfam/Pfam-A.hmm";
 $soft_rfam_db="/state/partition1/DBs/rfam/Rfam.hmm";
 $soft_diamond_refseq="/state/partition1/DBs/blastdb/refseq_DIAMOND";
 $soft_diamond_merops="/state/partition1/DBs/blastdb/MEROPS_diamond";
-$soft_interproscan="/share/thunderstorm/programs/interproscan-5.35-74.0/interproscan.sh";
-$soft_python3="/share/thunderstorm/programs/miniconda2/envs/interproscan/bin/"
+$soft_interproscan="/share/thunderstorm2/interproscan-5.48-83.0/interproscan.sh";
+$soft_python3="/share/thunderstorm/programs/miniconda3/bin/"

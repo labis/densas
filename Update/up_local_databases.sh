@@ -64,18 +64,18 @@ done
 ###############
 #DIAMOND FILES
 ###############
-# gunzip pepunit.lib.gz -d $DBDIR &
-gunzip nr.gz -d $DBDIR &
+gunzip -c pepunit.lib.gz > $DBDIR/pepunit.lib &
+# gunzip -c nr.gz > $DBDIR/nr.fasta &
 # gunzip swissprot.gz &
-# gunzip uniref90.fasta.gz &
+# gunzip -c uniref90.fasta.gz > $DBDIR/uniref90.fasta &
 wait
 
 #################################
 #TREAT FILES TO CREATE DATABASES
 #################################
 
-tr -d '-' < pepunit.lib | sed -e 's/\-/:/g' | cut -f1 -d" " | sed -e 's/\(\/\|\:\)//g' > pepunit_limpa3.lib
-rm -rf pepunit.lib
+tr -d '-' < $DBDIR/pepunit.lib | sed -e 's/\-/:/g' | cut -f1 -d" " | sed -e 's/\(\/\|\:\)//g' > $DBDIR/pepunit_limpa3.lib
+rm -rf $DBDIR/pepunit.lib
 
 ########################
 #CREATE BLAST DATABASES
@@ -90,10 +90,11 @@ wait
 ##########################
 
 
-$soft_diamond makedb --in pepunit_limpa3.lib -d $BLSTDIR/MEROPS_diamond -p $NSLOTS
-rm -rf pepunit_limpa3.lib
-# $soft_diamond makedb --in uniref90.fasta.gz -d $BLSTDIR/uniref90_diamond -p $NSLOTS
-# rm -rf uniref90.fasta.gz
+$soft_diamond makedb --in $DBDIR/pepunit_limpa3.lib -d $BLSTDIR/MEROPS_diamond -p $NSLOTS
+rm -rf $DBDIR/pepunit_limpa3.lib
+rm $COMPBLSTDIR/pepunit.lib.gz
+$soft_diamond makedb --in $COMPBLSTDIR/uniref90.fasta.gz -d $BLSTDIR/uniref90_diamond -p $NSLOTS
+rm -rf uniref90.fasta.gz
 $soft_diamond makedb --in $COMPBLSTDIR/nr.gz -d $BLSTDIR/nr_diamond --taxonmap prot.accession2taxid.gz --taxonnodes taxdmp.zip -p $NSLOTS
 rm -rf nr.gz
 $soft_diamond makedb --in refseq_protein.fasta --taxonmap prot.accession2taxid.gz --taxonnodes taxdmp.zip -d $BLSTDIR/refseq_DIAMOND -p $NSLOTS
@@ -142,5 +143,5 @@ rm -rf Rfam.seed Rfam.seed.hmm
 ##################
 
 find ${DBDIR} -maxdepth 1 -type f -print0 | xargs -0r rm -rf
-rm -rf ${COMPBLSTDIR}/
+#rm -rf ${COMPBLSTDIR}/
 date > update_time.txt

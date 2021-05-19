@@ -65,6 +65,7 @@ if [ $ABLAST = "nuc" ]; then
 $soft_transdecoder/TransDecoder.LongOrfs -t ${PRJ}_$SGE_TASK_ID.fasta -m 50
 $soft_transdecoder/TransDecoder.Predict -t ${PRJ}_$SGE_TASK_ID.fasta
 runfile=${PRJ}_$SGE_TASK_ID.fasta.transdecoder_dir/longest_orfs.pep
+cp ${PRJ}_$SGE_TASK_ID.fasta.transdecoder_dir/longest_orfs.pep $PEPDIR/${PRJ}_PFAM_$SGE_TASK_ID.pep
 else
 runfile=${PRJ}_$SGE_TASK_ID.fasta
 fi
@@ -88,10 +89,10 @@ qsub -t $SGE_TASK_ID -N ${PRJ}_inPFAM -q $qname -o $RUNDIR/OUT/In_PFAM_$SGE_TASK
 #   STEP FOUR:
 #   CLEAN UP
 ##############################################
-if [ $ABLAST = "nuc" ]; then
-mv ${PRJ}_$SGE_TASK_ID.fasta.transdecoder_dir/longest_orfs.pep $PEPDIR/${PRJ}_PFAM_$SGE_TASK_ID.pep
-mv $PFAMDIR/*.pep $PEPDIR/
-fi
+# if [ $ABLAST = "nuc" ]; then
+# mv ${PRJ}_$SGE_TASK_ID.fasta.transdecoder_dir/longest_orfs.pep $PEPDIR/${PRJ}_PFAM_$SGE_TASK_ID.pep
+# mv $PFAMDIR/*.pep $PEPDIR/
+# fi
 zip -rm ${PRJ}_${SGE_TASK_ID}_pfam.tblout.zip ${PRJ}_${SGE_TASK_ID}_pfam.tblout
 mv *.zip $PFAMDIR
 cd $PFAMDIR

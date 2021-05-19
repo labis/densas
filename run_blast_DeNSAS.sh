@@ -54,6 +54,7 @@ $soft_diamond $ABLAST --threads $NP -d $soft_diamond_refseq -q $TMPDIR/${PRJ}_$S
 $soft_diamond view -a $BLSTDIR/${PRJ}_${SGE_TASK_ID}_Diamond.daa -o $BLSTDIR/${PRJ}_blastx_$SGE_TASK_ID.tsv -f tab
 echo "Sending to DeNSAS_db"
 qsub -t $SGE_TASK_ID -N ${PRJ}_inDIA -q $qname -cwd -o $RUNDIR/OUT/In_Diamon_$SGE_TASK_ID.out -e $RUNDIR/OUT/In_Diamon_$SGE_TASK_ID.err -pe smp $ncpus_insert -v RUNDIR=$RUNDIR,DNSASDIR=$DNSASDIR,PRJ=$PRJ,where=2 ${DNSASDIR}/run_insert_results_DeNSAS.sh
+gzip $BLSTDIR/${PRJ}_${SGE_TASK_ID}_Diamond.daa
 fi
 
 #############
@@ -76,6 +77,7 @@ echo "date\nrunning diamond using MEROPS database"
 $soft_diamond $ABLAST --threads $NP -d $soft_diamond_merops -q $TMPDIR/${PRJ}_$SGE_TASK_ID.fasta -a $MRPSDIR/${PRJ}_${SGE_TASK_ID}_Diamond -t $TMPDIR -k $MaxSEQ -c 5 -e $Evalue
 $soft_diamond view -a $MRPSDIR/${PRJ}_${SGE_TASK_ID}_Diamond.daa -o $MRPSDIR/${PRJ}_Blastx_$SGE_TASK_ID.tsv -f tab
 qsub -t $SGE_TASK_ID -N ${PRJ}_inMRPS -q $qname -cwd -o $RUNDIR/OUT/In_MERDiamon_$SGE_TASK_ID.out -e $RUNDIR/OUT/In_MERDiamon_$SGE_TASK_ID.err -pe smp $ncpus_insert -v RUNDIR=$RUNDIR,DNSASDIR=$DNSASDIR,PRJ=$PRJ,where=3 ${DNSASDIR}/run_insert_results_DeNSAS.sh
+gzip $MRPSDIR/${PRJ}_${SGE_TASK_ID}_Diamond.daa
 fi
 
 cd $RUNDIR

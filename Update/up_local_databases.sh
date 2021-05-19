@@ -136,7 +136,7 @@ rm -rf Rfam.seed.gz
 cd ${DBDIR}/rfam/
 $soft_hmmbuild --cpu $NSLOTS Rfam.seed.hmm Rfam.seed
 $soft_hmmpress Rfam.seed.hmm
-rm -rf Rfam.seed Rfam.seed.hmm
+rm -rf Rfam.seed 
 
 ##################
 #CLEANUP THE MESS

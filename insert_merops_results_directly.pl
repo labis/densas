@@ -55,7 +55,7 @@ while (<FILE>) {
 chomp;
 my ($seqname, $mernun, $pident, $dumb, $dumb2, $dumb3, $dumb4, $dumb5, $dumb6, $dumb7, $evalue, $bitscore) = split("\t");
 #my ($locus1, $descarta) = split(/\./, $locus);
-print "$seqname\t$mernun\t$pident\t$evalue\t$bitscore\n";
+#print "$seqname\t$mernun\t$pident\t$evalue\t$bitscore\n";
 $sth->execute($seqname,$mernun,$pident,$evalue,$bitscore) or die "Query failed: $!";
 
 } # fecha looping no arquivo e insere

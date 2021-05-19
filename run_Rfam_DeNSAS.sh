@@ -62,7 +62,7 @@ perl ${DNSASDIR}//hmm_parser.pl ${PRJ}_rfam.tblout > $RFAMDIR/${PRJ}_RFAM_$SGE_T
 ##############################################
 
 #/share/thunderstorm/perl5/perls/perl-5.18.1/bin/perl ${DNSASDIR}/insert_rfam_results.pl -i $RFAMDIR/${PRJ}_RFAM_$SGE_TASK_ID.tsv --prj $PRJ
-qsub ${DNSASDIR}/run_insert_results_DeNSAS.sh -t $SGE_TASK_ID -N ${PRJ}_inRFAM -q $qname -o $RUNDIR/OUT/In_RFAM_$SGE_TASK_ID.out -pe smp $ncpus_insert -v RUNDIR=$RUNDIR,DNSASDIR=$DNSASDIR,PRJ=$PRJ,where=5
+qsub -t $SGE_TASK_ID -N ${PRJ}_inRFAM -q $qname -o $RUNDIR/OUT/In_RFAM_$SGE_TASK_ID.out -pe smp $ncpus_insert -v RUNDIR=$RUNDIR,DNSASDIR=$DNSASDIR,PRJ=$PRJ,where=5 ${DNSASDIR}/run_insert_results_DeNSAS.sh
 
 ##############################################
 #   STEP THREE:

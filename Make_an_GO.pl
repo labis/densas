@@ -36,7 +36,7 @@ my ($rundir,$ANNOT_file,$PRJ);
                 'nproc=s' => \$NProc,);
     if ((!$PRJ) || (!$rundir) || (!$ANNOT_file) || (!$pidentBL) || (!$evalueBL)) {
     print BOLD RED "Some required arguments are missing.\nYou must use this as follow:\n";
-    print BOLD MAGENTE "$0 --prj PROJECT --rundir /PATH/TO/THE/RUNDIR/ --outfile ANNOT_file --idt [ BLAST SEQUENCE SIMILARITY ] --evl [ BLAST EVALUE ] \n";
+    print BOLD MAGENTA "$0 --prj PROJECT --rundir /PATH/TO/THE/RUNDIR/ --outfile ANNOT_file --idt [ BLAST SEQUENCE SIMILARITY ] --evl [ BLAST EVALUE ] \n";
     exit 1
 }
 ################################
@@ -292,7 +292,8 @@ if (scalar(@$MONTA_ANOT) == 0) {
 }
   foreach my $row (@$MONTA_ANOT) {
      my ($GO_ID,$GO_TERM,$GO_CAT,$GO_DIST) = @$row;
-     print $fh "$seqNAME\t$GO_ID\t$GO_CAT\t$GO_DIST\t$GO_TERM\n";
+     #print $fh "$seqNAME\t$GO_ID\t$GO_CAT\t$GO_DIST\t$GO_TERM\n";
+     print "$seqNAME\t$GO_ID\t$GO_CAT\t$GO_DIST\t$GO_TERM\n";
 } # close d search
   
   } # Close foreach

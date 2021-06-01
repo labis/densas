@@ -46,13 +46,13 @@ runfile=${PRJ}_$SGE_TASK_ID.fasta.transdecoder_dir/longest_orfs.pep
 else
 runfile=${PRJ}_$SGE_TASK_ID.fasta
 fi
-
+sed -i 's/\*//g' $runfile
 ##############################################
 #   STEP TWO:
 #   Run interproscan
 ##############################################
 
-$soft_interproscan -i $runfile --cpu $NSLOTS -appl Pfam,Gene3D,TIGRFAM,SFLD -dp -iprlookup -goterms -pa -t p -T $TMPDIR -d $IPRSDIR -f tsv
+$soft_interproscan -i $runfile --cpu $NSLOTS -dp -iprlookup -goterms -pa -t p -T $TMPDIR -o $IPRSDIR/${PRJ}_${SGE_TASK_ID}_IPRS.tsv -f tsv
 
 ##############################################
 #   STEP THREE:

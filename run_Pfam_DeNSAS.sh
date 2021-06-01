@@ -69,6 +69,7 @@ cp ${PRJ}_$SGE_TASK_ID.fasta.transdecoder_dir/longest_orfs.pep $PEPDIR/${PRJ}_PF
 else
 runfile=${PRJ}_$SGE_TASK_ID.fasta
 fi
+sed -i 's/\*//g' $runfile
 ##############################################
 #   STEP TWO:
 #   RUN PFAM

@@ -51,5 +51,5 @@ $soft_pfam_db="/state/partition1/DBs/pfam/Pfam-A.hmm";
 $soft_rfam_db="/state/partition1/DBs/rfam/Rfam.seed.hmm";
 $soft_diamond_refseq="/state/partition1/DBs/blastdb/refseq_DIAMOND";
 $soft_diamond_merops="/state/partition1/DBs/blastdb/MEROPS_diamond";
-$soft_interproscan="/share/thunderstorm2/interproscan-5.48-83.0/interproscan.sh";
+$soft_interproscan="/share/thunderstorm2/interproscan-5.50-84.0/interproscan.sh";
 $soft_python3="/share/thunderstorm/programs/miniconda3/bin/"

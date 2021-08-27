@@ -270,7 +270,6 @@ print "Step 1 complete on ".floor(timing())." minutes\n Let´s continue.\nStep 2
 ################################# End LOOP file
 
 my @unique_GO = uniq @SUPER_GO; # create a non-redundant GO annotation
-
 open(my $fh, '>', $ANNOT_file); # Open file to write
 
 foreach (@unique_GO) {
@@ -292,8 +291,8 @@ if (scalar(@$MONTA_ANOT) == 0) {
 }
   foreach my $row (@$MONTA_ANOT) {
      my ($GO_ID,$GO_TERM,$GO_CAT,$GO_DIST) = @$row;
-     #print $fh "$seqNAME\t$GO_ID\t$GO_CAT\t$GO_DIST\t$GO_TERM\n";
-     print "$seqNAME\t$GO_ID\t$GO_CAT\t$GO_DIST\t$GO_TERM\n";
+     print $fh "$seqNAME\t$GO_ID\t$GO_CAT\t$GO_DIST\t$GO_TERM\n";
+     #print "$seqNAME\t$GO_ID\t$GO_CAT\t$GO_DIST\t$GO_TERM\n";
 } # close d search
   
   } # Close foreach

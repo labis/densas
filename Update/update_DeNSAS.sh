@@ -237,7 +237,7 @@ mysqlimport -u$DBUSER -p$DBPASS -h $DBSERVER --use-threads=30 --local --delete -
 ##########
 
 echo $(date -u) "Update the pfam2GO database"
-awk '{print $1, $NF;}' pfam2go | sed -e 's/Pfam://g' > $DOWNLDATA/pfamA2GO.txt
+awk '{print $1, $NF;}' pfam2go | sed -e 's/Pfam://g' | sed -e 's/ /\t/g'  > $DOWNLDATA/pfamA2GO.txt
 mysqlimport -u$DBUSER -p$DBPASS -h $DBSERVER --use-threads=30 --local --delete --columns "pfamA_acc,go_id" -d densas $DOWNLDATA/pfamA2GO.txt
 
 ##########
